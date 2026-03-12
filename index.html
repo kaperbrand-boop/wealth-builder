@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Builder — Montreal QC</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:#1A2E4A; --navy2:#1E3A5F;
+  --blue:#2563EB; --ltblue:#DBEAFE; --blue-text:#1D4ED8;
+  --green:#16A34A; --ltgreen:#DCFCE7; --green-text:#15803D;
+  --amber:#B45309; --ltamber:#FEF3C7; --amber-text:#92400E;
+  --red:#DC2626; --ltred:#FEE2E2;
+  --purp:#7C3AED; --ltpurp:#EDE9FE;
+  --g1:#F8FAFC; --g2:#F1F5F9; --g3:#E2E8F0; --g4:#94A3B8;
+  --text:#0F172A; --white:#fff;
+  --radius:8px; --radius-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#EEF2F7;color:var(--text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* ── Layout ── */
+.app{max-width:1120px;margin:0 auto;padding-bottom:60px}
+.banner{background:var(--navy);color:white;padding:22px 32px 18px}
+.banner h1{font-size:21px;font-weight:700;margin-bottom:3px}
+.banner p{font-size:12px;color:rgba(255,255,255,.6)}
+
+/* ── KPI strip ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--g3);border-bottom:3px solid var(--blue)}
+.kpi{background:var(--white);padding:14px 18px}
+.kpi-lbl{font-size:10px;color:var(--g4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.kpi-val{font-size:20px;font-weight:700}
+.kpi-sub{font-size:10px;color:var(--g4);margin-top:1px}
+.kpi.blue .kpi-val{color:var(--blue)}
+.kpi.green .kpi-val{color:var(--green)}
+.kpi.amber .kpi-val{color:var(--amber)}
+.kpi.purp .kpi-val{color:var(--purp)}
+
+/* ── Tabs ── */
+.tabs{display:flex;background:var(--white);border-bottom:1px solid var(--g3);padding:0 28px;overflow-x:auto;gap:0}
+.tab{padding:13px 18px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--g4);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s}
+.tab.active{color:var(--navy);border-bottom-color:var(--blue)}
+.tab:hover:not(.active){color:var(--text)}
+.panel{display:none;padding:26px 32px}
+.panel.active{display:block}
+
+/* ── Cards & sections ── */
+.card{background:var(--white);border:1px solid var(--g3);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.section-hdr{font-size:10px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--g3);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:640px){.two-col,.three-col{grid-template-columns:1fr}.panel{padding:14px}.tabs{padding:0 8px}}
+
+/* ── Badges ── */
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px}
+.badge-blue{background:var(--ltblue);color:var(--blue-text)}
+.badge-green{background:var(--ltgreen);color:var(--green-text)}
+.badge-amber{background:var(--ltamber);color:var(--amber-text)}
+.badge-gray{background:var(--g2);color:var(--g4)}
+
+/* ── Progress bars ── */
+.prog-wrap{display:flex;justify-content:space-between;font-size:11px;color:var(--g4);margin-bottom:4px}
+.prog-bg{background:var(--g2);height:5px;border-radius:3px;overflow:hidden;margin-bottom:10px}
+.prog-fill{height:5px;border-radius:3px;transition:width .4s}
+
+/* ── Assumptions inputs ── */
+.asm-table{width:100%;border-collapse:collapse}
+.asm-table tr:not(:last-child) td{border-bottom:1px solid var(--g2)}
+.asm-table td{padding:9px 10px;font-size:13px;vertical-align:middle}
+.asm-table .lbl{color:var(--text);width:65%}
+.asm-table .inp{text-align:right}
+.asm-table input{width:110px;padding:5px 10px;font-size:13px;border:1.5px solid var(--ltblue);border-radius:6px;color:var(--blue);font-weight:700;text-align:right;background:var(--ltblue)}
+.asm-table input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.asm-table .note{font-size:11px;color:var(--g4);text-align:left;padding-left:8px}
+.asm-section{background:var(--navy2);color:white;padding:6px 10px;font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:var(--radius) var(--radius) 0 0}
+.asm-block{border:1px solid var(--g3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.calc-row td{background:var(--g1)!important;font-weight:600;color:var(--blue)}
+.total-row td{background:var(--ltgreen)!important;font-weight:700;color:var(--green-text)}
+
+/* ── Monthly tracker ── */
+.month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.month-card{background:var(--white);border:1px solid var(--g3);border-radius:var(--radius-lg);padding:15px 17px}
+.month-card.current-month{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.month-card.april-card{border-color:var(--amber)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mname{font-size:13px;font-weight:600}
+.alloc-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.alloc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alloc-lbl{font-size:11px;color:var(--g4);width:110px;flex-shrink:0}
+.alloc-bar-bg{flex:1;height:4px;background:var(--g2);border-radius:2px;overflow:hidden}
+.alloc-bar{height:4px;border-radius:2px;transition:width .4s}
+.alloc-amt{font-size:11px;font-weight:600;width:48px;text-align:right;flex-shrink:0}
+.minputs{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.minputs input{width:72px;padding:5px 7px;font-size:12px;border:1.5px solid var(--ltblue);border-radius:6px;color:var(--blue);font-weight:700;text-align:center;background:var(--ltblue)}
+.minputs input:focus{outline:none;border-color:var(--blue)}
+.april-input{border-color:var(--ltamber)!important;background:var(--ltamber)!important;color:var(--amber)!important}
+.checks{margin-top:9px}
+.chk-row{display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;font-size:12px}
+.chk-row.done{color:var(--g4);text-decoration:line-through}
+.chk-row input{accent-color:var(--blue);cursor:pointer}
+.mfooter{display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--g2);margin-top:9px;padding-top:8px}
+.mnote{width:100%;margin-top:7px;padding:5px 8px;font-size:11px;border:1px solid var(--g3);border-radius:6px;resize:none;height:40px;color:var(--text);font-family:inherit;background:var(--g1)}
+.mnote:focus{outline:none;border-color:var(--blue)}
+.april-banner{background:var(--ltamber);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--amber-text);font-weight:600;margin-bottom:8px}
+
+/* ── Mini stat boxes ── */
+.mini-stat{background:var(--g1);border-radius:8px;padding:10px 12px;text-align:center}
+.mini-stat .lbl{font-size:10px;color:var(--g4);margin-bottom:3px}
+.mini-stat .val{font-size:15px;font-weight:700}
+
+/* ── Budget table ── */
+.budget-section{margin-bottom:12px;border:1px solid var(--g3);border-radius:var(--radius);overflow:hidden}
+.budget-hdr{background:var(--navy2);color:white;padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:.05em}
+.budget-row{display:flex;justify-content:space-between;padding:9px 14px;font-size:13px;border-bottom:1px solid var(--g2)}
+.budget-row:last-child{border-bottom:none}
+.budget-row.sub-total{background:var(--ltblue);font-weight:600;color:var(--blue-text)}
+.budget-row.invest-row{background:var(--ltgreen);font-weight:600;color:var(--green-text)}
+.budget-row.total-navy{background:var(--navy);color:white;font-weight:700}
+.budget-row.ratio-row{background:var(--ltgreen)}
+.ratio-pill{background:var(--ltgreen);color:var(--green-text);padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+
+/* ── Capital build table ── */
+.cap-table{width:100%;border-collapse:collapse;font-size:12px}
+.cap-table th{background:var(--navy);color:white;padding:8px 10px;text-align:center;font-weight:600;font-size:11px}
+.cap-table td{padding:7px 10px;text-align:center;border-bottom:1px solid var(--g2)}
+.cap-table tr:nth-child(even) td{background:var(--g1)}
+.cap-table .april-row td{background:var(--ltamber)!important;font-weight:600;color:var(--amber-text)}
+.cap-table .cum-cell{font-weight:700;color:var(--green);background:var(--ltgreen)!important}
+.cap-table .refund-cell{font-weight:700;color:var(--amber)}
+.cap-table .yr-label{font-weight:700;color:var(--navy2)}
+.table-wrap{overflow-x:auto}
+.dp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:14px}
+.dp-stat{padding:12px 14px;border-radius:var(--radius);text-align:center}
+.dp-stat .lbl{font-size:10px;color:var(--g4);margin-bottom:4px}
+.dp-stat .val{font-size:16px;font-weight:700}
+
+/* ── Projection ── */
+.chart-wrap{position:relative;width:100%;height:280px}
+.proj-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.proj-table th{background:var(--navy);color:white;padding:8px 10px;text-align:center;font-size:11px}
+.proj-table td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--g2)}
+.proj-table tr:nth-child(even) td{background:var(--g1)}
+.proj-table .nw-cell{font-weight:700;color:var(--green-text);background:var(--ltgreen)!important}
+.proj-table .port-cell{color:var(--blue-text)}
+.proj-table .re-cell{color:var(--amber-text)}
+.proj-table .milestone td{background:var(--ltamber)!important;font-weight:600;color:var(--amber-text)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--g4);margin-bottom:10px}
+.legend span{display:flex;align-items:center;gap:5px}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="banner">
+  <h1>Wealth Builder — Montreal, QC</h1>
+  <p>$49K net income · 7–8 year path to ~$620K–$1M net worth · Data saved locally in your browser</p>
+</div>
+
+<div class="kpi-strip" id="kpiStrip"></div>
+
+<div class="tabs">
+  <button class="tab active"  onclick="go('assumptions',this)">Assumptions</button>
+  <button class="tab"         onclick="go('monthly',this)">Monthly Tracker</button>
+  <button class="tab"         onclick="go('budget',this)">Budget Plan</button>
+  <button class="tab"         onclick="go('capital',this)">Capital Build</button>
+  <button class="tab"         onclick="go('projection',this)">8-Year Projection</button>
+  <button class="tab"         onclick="go('howto',this)">How to Use</button>
+</div>
+
+<div id="panel-assumptions" class="panel active"></div>
+<div id="panel-monthly"     class="panel"></div>
+<div id="panel-budget"      class="panel"></div>
+<div id="panel-capital"     class="panel"></div>
+<div id="panel-projection"  class="panel"></div>
+<div id="panel-howto"       class="panel"></div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+const DEFAULT_ASM = {
+  net_income: 49000,
+  rent: 447, phone: 50, gym: 50, internet: 50,
+  food: 500, transport: 250, misc: 300,
+  rrsp_mo: 900, tfsa_mo: 600, re_mo: 900,
+  tax_rate: 0.35,
+  re_growth: 0.04, port_return: 0.07,
+  prop1_price: 500000, prop1_dp_pct: 0.10,
+  prop2_price: 600000, prop2_dp_pct: 0.10
+};
+
+let asm = {...DEFAULT_ASM};
+let monthly = {};   // { "2025-0": {rrsp,tfsa,re,refund,checks,note}, ... }
+
+function loadData() {
+  try {
+    const a = localStorage.getItem('wb2025v2_asm');
+    if (a) asm = {...DEFAULT_ASM, ...JSON.parse(a)};
+    const m = localStorage.getItem('wb2025v2_mon');
+    if (m) monthly = JSON.parse(m);
+  } catch(e) {}
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('wb2025v2_asm', JSON.stringify(asm));
+    localStorage.setItem('wb2025v2_mon', JSON.stringify(monthly));
+  } catch(e) {}
+}
+
+function getM(year, mo) {
+  const k = `${year}-${mo}`;
+  if (!monthly[k]) monthly[k] = {rrsp:0, tfsa:0, re:0, refund:0, checks:[false,false,false,false], note:''};
+  return monthly[k];
+}
+
+// ── Derived values ──────────────────────────────────────────────────────
+function calc() {
+  const a = asm;
+  const mo_net    = a.net_income / 12;
+  const fix       = a.rent + a.phone + a.gym + a.internet;
+  const vari      = a.food + a.transport + a.misc;
+  const mo_invest = a.rrsp_mo + a.tfsa_mo + a.re_mo;
+  const mo_free   = mo_net - fix - vari - mo_invest;
+  const yr_invest = mo_invest * 12;
+  const yr_rrsp   = a.rrsp_mo * 12;
+  const refund    = yr_rrsp * a.tax_rate;
+  const yr_total  = yr_invest + refund;
+  const savings_rate = mo_invest / mo_net;
+  const housing_ratio = a.rent / mo_net;
+  return {mo_net, fix, vari, mo_invest, mo_free, yr_invest, yr_rrsp, refund, yr_total, savings_rate, housing_ratio};
+}
+
+function fmt(n, dec=0) {
+  if (n === undefined || n === null || isNaN(n)) return '$0';
+  return '$' + Math.round(n).toLocaleString();
+}
+function pct(v,t){ return t===0?0:Math.min(100,Math.round(v/t*100)); }
+function fmtP(v){ return Math.round(v*100)+'%'; }
+
+// ── KPI strip ───────────────────────────────────────────────────────────
+function renderKPI() {
+  const c = calc();
+  const year = 2025;
+  let tot_inv = 0;
+  for (let i=0;i<12;i++) { const m=getM(year,i); tot_inv+=m.rrsp+m.tfsa+m.re+m.refund; }
+  const yr2_cap = c.yr_total * 2;
+  document.getElementById('kpiStrip').innerHTML = `
+    <div class="kpi green"><div class="kpi-lbl">Monthly invested</div><div class="kpi-val">${fmt(c.mo_invest)}</div><div class="kpi-sub">${fmtP(c.savings_rate)} savings rate</div></div>
+    <div class="kpi blue"><div class="kpi-lbl">Annual capital (savings)</div><div class="kpi-val">${fmt(c.yr_invest)}</div><div class="kpi-sub">+${fmt(c.refund)} refund in April</div></div>
+    <div class="kpi amber"><div class="kpi-lbl">Total per year incl. refund</div><div class="kpi-val">${fmt(c.yr_total)}</div><div class="kpi-sub">yr 2 cumulative ~${fmt(yr2_cap)}</div></div>
+    <div class="kpi purp"><div class="kpi-lbl">Housing ratio</div><div class="kpi-val">${fmtP(c.housing_ratio)}</div><div class="kpi-sub">vs 30–40% Canadian avg</div></div>
+  `;
+}
+
+// ── Tab switcher ────────────────────────────────────────────────────────
+function go(name, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  renders[name]();
+}
+
+// ── Assumptions panel ───────────────────────────────────────────────────
+function renderAssumptions() {
+  const c = calc();
+  const el = document.getElementById('panel-assumptions');
+  el.innerHTML = `
+  <div class="section-hdr">All blue fields are your inputs — every other sheet updates automatically</div>
+  <div class="two-col">
+    <div>
+      <div class="asm-block">
+        <div class="asm-section">INCOME</div>
+        <table class="asm-table">
+          <tr><td class="lbl">Annual net income ($)</td><td class="inp"><input type="number" id="a-net_income" value="${asm.net_income}"></td><td class="note">Before investing, after tax</td></tr>
+          <tr class="calc-row"><td class="lbl">Monthly net income</td><td class="inp">${fmt(c.mo_net)}</td><td class="note">Auto</td></tr>
+        </table>
+      </div>
+      <div class="asm-block">
+        <div class="asm-section">FIXED MONTHLY EXPENSES</div>
+        <table class="asm-table">
+          <tr><td class="lbl">Rent ($)</td><td class="inp"><input type="number" id="a-rent" value="${asm.rent}"></td><td class="note">Your biggest advantage</td></tr>
+          <tr><td class="lbl">Phone ($)</td><td class="inp"><input type="number" id="a-phone" value="${asm.phone}"></td><td class="note"></td></tr>
+          <tr><td class="lbl">Gym ($)</td><td class="inp"><input type="number" id="a-gym" value="${asm.gym}"></td><td class="note"></td></tr>
+          <tr><td class="lbl">Internet ($)</td><td class="inp"><input type="number" id="a-internet" value="${asm.internet}"></td><td class="note"></td></tr>
+          <tr class="calc-row"><td class="lbl">Total fixed</td><td class="inp">${fmt(c.fix)}</td><td class="note">Auto</td></tr>
+        </table>
+      </div>
+      <div class="asm-block">
+        <div class="asm-section">VARIABLE MONTHLY EXPENSES</div>
+        <table class="asm-table">
+          <tr><td class="lbl">Food ($)</td><td class="inp"><input type="number" id="a-food" value="${asm.food}"></td><td class="note"></td></tr>
+          <tr><td class="lbl">Transport ($)</td><td class="inp"><input type="number" id="a-transport" value="${asm.transport}"></td><td class="note"></td></tr>
+          <tr><td class="lbl">Miscellaneous ($)</td><td class="inp"><input type="number" id="a-misc" value="${asm.misc}"></td><td class="note"></td></tr>
+          <tr class="calc-row"><td class="lbl">Total variable</td><td class="inp">${fmt(c.vari)}</td><td class="note">Auto</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="asm-block">
+        <div class="asm-section">MONTHLY INVESTMENT TARGETS</div>
+        <table class="asm-table">
+          <tr><td class="lbl">RRSP monthly ($)</td><td class="inp"><input type="number" id="a-rrsp_mo" value="${asm.rrsp_mo}"></td><td class="note">→ ${fmt(asm.rrsp_mo*12)}/yr</td></tr>
+          <tr><td class="lbl">TFSA monthly ($)</td><td class="inp"><input type="number" id="a-tfsa_mo" value="${asm.tfsa_mo}"></td><td class="note">Tax-free growth</td></tr>
+          <tr><td class="lbl">Real estate fund monthly ($)</td><td class="inp"><input type="number" id="a-re_mo" value="${asm.re_mo}"></td><td class="note">Building down payment</td></tr>
+          <tr class="calc-row"><td class="lbl">Total monthly invested</td><td class="inp">${fmt(c.mo_invest)}</td><td class="note">Auto</td></tr>
+          <tr class="calc-row"><td class="lbl">Monthly free cash flow</td><td class="inp">${fmt(c.mo_free)}</td><td class="note">Buffer</td></tr>
+        </table>
+      </div>
+      <div class="asm-block" style="border-color:var(--amber)">
+        <div class="asm-section" style="background:var(--amber)">RRSP TAX REFUND — arrives in April only</div>
+        <table class="asm-table">
+          <tr class="calc-row"><td class="lbl">Annual RRSP contribution</td><td class="inp">${fmt(c.yr_rrsp)}</td><td class="note">Auto: ${asm.rrsp_mo} × 12</td></tr>
+          <tr><td class="lbl">Quebec marginal tax rate (%)</td><td class="inp"><input type="number" id="a-tax_rate" value="${Math.round(asm.tax_rate*100)}" step="1" min="1" max="60"></td><td class="note">~35% fed+provincial</td></tr>
+          <tr class="calc-row" style="background:var(--ltamber)!important"><td class="lbl" style="color:var(--amber-text);font-weight:700">Estimated refund</td><td class="inp" style="font-weight:700;color:var(--amber-text)">${fmt(c.refund)}</td><td class="note" style="color:var(--amber-text)">Reinvest → RE fund</td></tr>
+        </table>
+      </div>
+      <div class="asm-block">
+        <div class="asm-section">GROWTH ASSUMPTIONS</div>
+        <table class="asm-table">
+          <tr><td class="lbl">Portfolio annual return (%)</td><td class="inp"><input type="number" id="a-port_return" value="${Math.round(asm.port_return*100)}" step="1"></td><td class="note">Conservative 7%</td></tr>
+          <tr><td class="lbl">Real estate appreciation (%)</td><td class="inp"><input type="number" id="a-re_growth" value="${Math.round(asm.re_growth*100)}" step="1"></td><td class="note">Conservative 4%</td></tr>
+          <tr><td class="lbl">Target duplex price ($)</td><td class="inp"><input type="number" id="a-prop1_price" value="${asm.prop1_price}"></td><td class="note">Year 2 purchase</td></tr>
+          <tr><td class="lbl">Down payment % property 1</td><td class="inp"><input type="number" id="a-prop1_dp_pct" value="${Math.round(asm.prop1_dp_pct*100)}" step="1"></td><td class="note">10% = ${fmt(asm.prop1_price*asm.prop1_dp_pct)}</td></tr>
+          <tr><td class="lbl">Target property 2 price ($)</td><td class="inp"><input type="number" id="a-prop2_price" value="${asm.prop2_price}"></td><td class="note">Year 5-6 purchase</td></tr>
+          <tr><td class="lbl">Down payment % property 2</td><td class="inp"><input type="number" id="a-prop2_dp_pct" value="${Math.round(asm.prop2_dp_pct*100)}" step="1"></td><td class="note">Via refinance</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>`;
+
+  // Bind inputs
+  el.querySelectorAll('input[id^="a-"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const key = inp.id.slice(2);
+      let v = parseFloat(inp.value) || 0;
+      // percent fields stored as decimals
+      if (['tax_rate','port_return','re_growth','prop1_dp_pct','prop2_dp_pct'].includes(key)) v = v/100;
+      asm[key] = v;
+      saveData();
+      renderKPI();
+      renderAssumptions(); // re-render to update calc rows
+    });
+  });
+}
+
+// ── Monthly tracker ─────────────────────────────────────────────────────
+function renderMonthly() {
+  const year = 2025;
+  const cm   = new Date().getMonth();
+  const c    = calc();
+  const el   = document.getElementById('panel-monthly');
+
+  let html = '<div class="section-hdr">Enter actual contributions in the blue fields each month. April row includes the tax refund field.</div><div class="month-grid">';
+
+  for (let i=0;i<12;i++) {
+    const m   = getM(year, i);
+    const tot = m.rrsp + m.tfsa + m.re + m.refund;
+    const p   = pct(tot, c.mo_invest + (i===3 ? c.refund : 0));
+    const isApr = i===3, isCur=i===cm, isPast=i<cm;
+    const statusClass = isPast?'badge-green': isCur?'badge-blue':'badge-gray';
+    const statusTxt   = isPast?'Done': isCur?'This month':'Upcoming';
+    const cardCls     = ['month-card', isCur?'current-month':'', isApr?'april-card':''].join(' ').trim();
+    const target      = c.mo_invest + (isApr ? c.refund : 0);
+
+    html += `<div class="${cardCls}">
+      <div class="mh"><span class="mname">${MONTHS[i]}${isApr?' 🍁':''}</span><span class="badge ${statusClass}">${statusTxt}</span></div>
+      ${isApr?`<div class="april-banner">Tax refund month — add ~${fmt(c.refund)} to RE Fund field below</div>`:''}
+      <div class="prog-wrap"><span>Progress</span><span>${p}%</span></div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${p}%;background:${isApr?'#B45309':'#2563EB'}"></div></div>
+      <div class="alloc-row"><span class="alloc-dot" style="background:#2563EB"></span><span class="alloc-lbl">RRSP (${fmt(c.asm_rrsp||asm.rrsp_mo)})</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${pct(m.rrsp,asm.rrsp_mo)}%;background:#2563EB"></div></div><span class="alloc-amt">${fmt(m.rrsp)}</span></div>
+      <div class="alloc-row"><span class="alloc-dot" style="background:#16A34A"></span><span class="alloc-lbl">TFSA (${fmt(asm.tfsa_mo)})</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${pct(m.tfsa,asm.tfsa_mo)}%;background:#16A34A"></div></div><span class="alloc-amt">${fmt(m.tfsa)}</span></div>
+      <div class="alloc-row"><span class="alloc-dot" style="background:#B45309"></span><span class="alloc-lbl">RE Fund (${fmt(asm.re_mo)})</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${pct(m.re,asm.re_mo)}%;background:#B45309"></div></div><span class="alloc-amt">${fmt(m.re)}</span></div>
+      ${isApr?`<div class="alloc-row"><span class="alloc-dot" style="background:#D97706"></span><span class="alloc-lbl">Tax refund</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${pct(m.refund,c.refund)}%;background:#D97706"></div></div><span class="alloc-amt">${fmt(m.refund)}</span></div>`:''}
+      <div class="minputs">
+        <input type="number" placeholder="RRSP" value="${m.rrsp||''}" title="RRSP" oninput="updM(${year},${i},'rrsp',this.value)">
+        <input type="number" placeholder="TFSA" value="${m.tfsa||''}" title="TFSA" oninput="updM(${year},${i},'tfsa',this.value)">
+        <input type="number" placeholder="RE Fund" value="${m.re||''}" title="RE Fund" oninput="updM(${year},${i},'re',this.value)">
+        ${isApr?`<input type="number" placeholder="Refund" class="april-input" value="${m.refund||''}" title="Tax refund lump sum" oninput="updM(${year},${i},'refund',this.value)">`:''}
+      </div>
+      <div class="checks">
+        <label class="chk-row${m.checks[0]?' done':''}"><input type="checkbox" ${m.checks[0]?'checked':''} onchange="chkM(${year},${i},0)"> RRSP transfer sent</label>
+        <label class="chk-row${m.checks[1]?' done':''}"><input type="checkbox" ${m.checks[1]?'checked':''} onchange="chkM(${year},${i},1)"> TFSA transfer sent</label>
+        <label class="chk-row${m.checks[2]?' done':''}"><input type="checkbox" ${m.checks[2]?'checked':''} onchange="chkM(${year},${i},2)"> RE Fund transfer sent</label>
+        ${isApr?`<label class="chk-row${m.checks[3]?' done':''}"><input type="checkbox" ${m.checks[3]?'checked':''} onchange="chkM(${year},${i},3)"> Tax refund reinvested</label>`:''}
+      </div>
+      <textarea class="mnote" placeholder="Notes..." oninput="noteM(${year},${i},this.value)">${m.note||''}</textarea>
+      <div class="mfooter"><span style="color:var(--g4)">Total</span><span style="font-weight:700">${fmt(tot)} / ${fmt(target)}</span></div>
+    </div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function updM(year,mo,field,val) {
+  getM(year,mo)[field] = parseFloat(val)||0;
+  saveData(); renderKPI(); renderMonthly();
+}
+function chkM(year,mo,idx) {
+  const m = getM(year,mo); m.checks[idx]=!m.checks[idx]; saveData(); renderMonthly();
+}
+function noteM(year,mo,val) { getM(year,mo).note=val; saveData(); }
+
+// ── Budget plan ──────────────────────────────────────────────────────────
+function renderBudget() {
+  const c = calc();
+  const el = document.getElementById('panel-budget');
+  el.innerHTML = `
+  <div class="section-hdr">All values pull from Assumptions — change inputs there</div>
+  <div class="two-col">
+    <div>
+      <div class="budget-section">
+        <div class="budget-hdr">INCOME</div>
+        <div class="budget-row"><span>Monthly net income</span><span style="font-weight:600">${fmt(c.mo_net)}</span></div>
+      </div>
+      <div class="budget-section">
+        <div class="budget-hdr">FIXED EXPENSES</div>
+        <div class="budget-row"><span>Rent</span><span>${fmt(asm.rent)}</span></div>
+        <div class="budget-row"><span>Phone</span><span>${fmt(asm.phone)}</span></div>
+        <div class="budget-row"><span>Gym</span><span>${fmt(asm.gym)}</span></div>
+        <div class="budget-row"><span>Internet</span><span>${fmt(asm.internet)}</span></div>
+        <div class="budget-row sub-total"><span>Total fixed</span><span>${fmt(c.fix)}</span></div>
+      </div>
+      <div class="budget-section">
+        <div class="budget-hdr">VARIABLE EXPENSES</div>
+        <div class="budget-row"><span>Food</span><span>${fmt(asm.food)}</span></div>
+        <div class="budget-row"><span>Transport</span><span>${fmt(asm.transport)}</span></div>
+        <div class="budget-row"><span>Miscellaneous</span><span>${fmt(asm.misc)}</span></div>
+        <div class="budget-row sub-total"><span>Total variable</span><span>${fmt(c.vari)}</span></div>
+      </div>
+      <div class="budget-section">
+        <div class="budget-hdr">MONTHLY INVESTMENTS (automated)</div>
+        <div class="budget-row"><span>RRSP</span><span style="color:var(--blue);font-weight:600">${fmt(asm.rrsp_mo)}</span></div>
+        <div class="budget-row"><span>TFSA</span><span style="color:var(--green);font-weight:600">${fmt(asm.tfsa_mo)}</span></div>
+        <div class="budget-row"><span>Real estate fund</span><span style="color:var(--amber);font-weight:600">${fmt(asm.re_mo)}</span></div>
+        <div class="budget-row invest-row"><span>Total invested monthly</span><span>${fmt(c.mo_invest)}</span></div>
+      </div>
+      <div class="budget-section">
+        <div class="budget-row total-navy"><span>TOTAL OUTFLOW</span><span>${fmt(c.fix+c.vari+c.mo_invest)}</span></div>
+        <div class="budget-row" style="background:var(--ltgreen)"><span style="font-size:12px">Free cash flow (buffer)</span><span style="color:var(--green);font-weight:600">${fmt(c.mo_free)}</span></div>
+        <div class="budget-row ratio-row"><span style="font-size:12px">Housing cost ratio</span><span><span class="ratio-pill">${fmtP(c.housing_ratio)}</span> vs 30-40% avg</span></div>
+        <div class="budget-row ratio-row"><span style="font-size:12px">Savings rate</span><span><span class="ratio-pill">${fmtP(c.savings_rate)}</span> of net income</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="border-color:var(--amber)">
+        <div class="card-title">Tax refund strategy <span class="badge badge-amber">April only</span></div>
+        <div class="budget-row" style="border-bottom:1px solid var(--g2)"><span>Annual RRSP contribution</span><span style="font-weight:600">${fmt(c.yr_rrsp)}</span></div>
+        <div class="budget-row" style="border-bottom:1px solid var(--g2)"><span>Quebec tax rate</span><span>${fmtP(asm.tax_rate)}</span></div>
+        <div class="budget-row" style="background:var(--ltamber);font-weight:700;color:var(--amber-text)"><span>Estimated refund (April)</span><span>${fmt(c.refund)}</span></div>
+        <p style="font-size:12px;color:var(--g4);margin-top:10px;padding:0 4px">File taxes by April 30. When refund arrives, transfer 100% to your real estate fund immediately. This is a one-time annual lump sum, not a monthly amount.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Annual capital summary</div>
+        <div class="three-col" style="margin-bottom:10px">
+          <div class="mini-stat"><div class="lbl">From savings</div><div class="val" style="color:var(--blue)">${fmt(c.yr_invest)}</div></div>
+          <div class="mini-stat" style="background:var(--ltamber)"><div class="lbl">Tax refund (April)</div><div class="val" style="color:var(--amber)">${fmt(c.refund)}</div></div>
+          <div class="mini-stat" style="background:var(--ltgreen)"><div class="lbl">Total per year</div><div class="val" style="color:var(--green)">${fmt(c.yr_total)}</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--g4)">Year 2 cumulative: <strong style="color:var(--green)">${fmt(c.yr_total*2)}</strong> — enough for a ${fmtP(asm.prop1_dp_pct)} down payment on a ${fmt(asm.prop1_price)} duplex.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">The 4 wealth multipliers</div>
+        ${[
+          ['High savings rate','59%+ of income invested, not spent','var(--ltgreen)','var(--green-text)'],
+          ['Tax deductions (RRSP)','Reduces taxable income → free capital via refund','var(--ltamber)','var(--amber-text)'],
+          ['Leverage (real estate)','Control $500K with only $50K down','var(--ltblue)','var(--blue-text)'],
+          ['Compound growth','RRSP+TFSA at 7% doubles every ~10 years','var(--ltpurp)','var(--purp)']
+        ].map(([t,d,bg,fc])=>`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;padding:8px 10px;background:${bg};border-radius:6px"><div style="font-size:13px;font-weight:600;color:${fc};min-width:140px">${t}</div><div style="font-size:12px;color:var(--text)">${d}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Capital build (24 months) ────────────────────────────────────────────
+function renderCapital() {
+  const c = calc();
+  const el = document.getElementById('panel-capital');
+  const mo_t = c.mo_invest;
+
+  let rows = '', cum = 0;
+  for (let i=0; i<24; i++) {
+    const yr = i<12?1:2, mo=i%12;
+    const isApr = mo===3;
+    const refund = isApr ? c.refund : 0;
+    const total  = mo_t + refund;
+    cum += total;
+    const cls = isApr ? 'april-row' : (i%2===0?'':'');
+    rows += `<tr class="${cls}">
+      <td class="yr-label">${MONTHS[mo]} Yr ${yr}</td>
+      <td>${fmt(asm.rrsp_mo)}</td>
+      <td>${fmt(asm.tfsa_mo)}</td>
+      <td>${fmt(asm.re_mo)}</td>
+      <td style="font-weight:600">${fmt(mo_t)}</td>
+      <td class="refund-cell">${isApr?fmt(refund):'-'}</td>
+      <td class="cum-cell">${fmt(cum)}</td>
+    </tr>`;
+  }
+
+  const dp1   = asm.prop1_price * asm.prop1_dp_pct;
+  const dp1_5 = asm.prop1_price * 0.05;
+  const cum2  = c.yr_total * 2;
+  el.innerHTML = `
+  <div class="section-hdr">Month-by-month capital accumulation over 24 months toward down payment</div>
+  <div class="card">
+    <div class="card-title">24-month capital build <span class="badge badge-amber">Tax refund appears in April — once per year</span></div>
+    <div class="table-wrap">
+      <table class="cap-table">
+        <thead><tr>
+          <th>Month</th><th>RRSP</th><th>TFSA</th><th>RE Fund</th><th>Monthly Total</th><th>Tax Refund</th><th>Cumulative Capital</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="border-color:var(--green)">
+    <div class="card-title">Down payment readiness after Year 2</div>
+    <div class="dp-grid">
+      <div class="dp-stat" style="background:var(--ltgreen)"><div class="lbl">Capital after Year 2</div><div class="val" style="color:var(--green)">${fmt(cum2)}</div></div>
+      <div class="dp-stat" style="background:var(--ltblue)"><div class="lbl">10% down needed</div><div class="val" style="color:var(--blue)">${fmt(dp1)}</div></div>
+      <div class="dp-stat" style="background:var(--ltgreen)"><div class="lbl">Surplus at 10%</div><div class="val" style="color:var(--green)">${fmt(cum2-dp1)}</div></div>
+      <div class="dp-stat" style="background:var(--g1)"><div class="lbl">5% down alternative</div><div class="val">${fmt(dp1_5)}</div></div>
+      <div class="dp-stat" style="background:var(--ltgreen)"><div class="lbl">Surplus at 5%</div><div class="val" style="color:var(--green)">${fmt(cum2-dp1_5)}</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--g4);margin-top:12px">Target: duplex ~${fmt(asm.prop1_price)} in Sherbrooke, Trois-Rivières, or similar Quebec market where rental income covers most of the mortgage.</p>
+  </div>`;
+}
+
+// ── 8-Year projection ────────────────────────────────────────────────────
+let projChart = null;
+function renderProjection() {
+  const c   = calc();
+  const ret = asm.port_return;
+  const reg = asm.re_growth;
+  const ann = (asm.rrsp_mo + asm.tfsa_mo) * 12;
+
+  // Portfolio (RRSP+TFSA compound, invested $ann/yr)
+  const portfolio = Array.from({length:9},(_,i)=>{
+    let fv=0; for(let y=0;y<=i;y++) fv=(fv+ann)*(1+ret);
+    return Math.round(fv);
+  });
+
+  // RE equity
+  const reEq = Array.from({length:9},(_,i)=>{
+    const yr=i+1;
+    if(yr<2) return 0;
+    const y1=yr-2, v1=Math.round(asm.prop1_price*Math.pow(1+reg,y1));
+    const m1=Math.max(0, asm.prop1_price*(1-asm.prop1_dp_pct) - 12000*y1);
+    let eq=Math.max(0,v1-m1);
+    if(yr>=5){
+      const y2=yr-5, v2=Math.round(asm.prop2_price*Math.pow(1+reg,y2));
+      const m2=Math.max(0, asm.prop2_price*(1-asm.prop2_dp_pct) - 12000*y2);
+      eq+=Math.max(0,v2-m2);
+    }
+    return eq;
+  });
+
+  const cash  = Array.from({length:9},(_,i)=>i>=1?20000:5000);
+  const nw    = portfolio.map((_,i)=>portfolio[i]+reEq[i]+cash[i]);
+  const years = Array.from({length:9},(_,i)=>2025+i);
+
+  // Table
+  const milestones = {2:'🏠 Buy duplex', 5:'🔄 Refinance → Prop 2', 8:'🎯 Target NW'};
+  let trows = '';
+  for (let i=0;i<9;i++) {
+    const yr=i+1, label=years[i];
+    const mCls = milestones[yr]?'milestone':'';
+    trows+=`<tr class="${mCls}">
+      <td style="font-weight:600">${label}</td>
+      <td>${yr>=2?'Yr '+(yr-1):'—'}</td>
+      <td class="port-cell">${fmt(portfolio[i])}</td>
+      <td class="re-cell">${yr>=2?fmt(reEq[i]):'—'}</td>
+      <td>${fmt(cash[i])}</td>
+      <td class="nw-cell">${fmt(nw[i])}</td>
+      <td style="font-size:11px;color:var(--amber-text)">${milestones[yr]||''}</td>
+    </tr>`;
+  }
+
+  const el = document.getElementById('panel-projection');
+  el.innerHTML = `
+  <div class="section-hdr">Based on Assumptions — change inputs there to update all projections</div>
+  <div class="card">
+    <div class="card-title">Net worth growth 2025–2033</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#2563EB"></span>RRSP+TFSA portfolio</span>
+      <span><span class="ldot" style="background:#B45309"></span>Real estate equity</span>
+      <span><span class="ldot" style="background:#16A34A"></span>Total net worth (line)</span>
+    </div>
+    <div class="chart-wrap"><canvas id="projCanvas"></canvas></div>
+  </div>
+  <div class="three-col" style="margin-bottom:14px">
+    <div class="mini-stat" style="background:var(--ltblue)"><div class="lbl">Portfolio Yr 8</div><div class="val" style="color:var(--blue)">${fmt(portfolio[7])}</div></div>
+    <div class="mini-stat" style="background:var(--ltamber)"><div class="lbl">RE equity Yr 8</div><div class="val" style="color:var(--amber)">${fmt(reEq[7])}</div></div>
+    <div class="mini-stat" style="background:var(--ltgreen)"><div class="lbl">Net worth Yr 8</div><div class="val" style="color:var(--green)">${fmt(nw[7])}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Year-by-year breakdown</div>
+    <div class="table-wrap">
+      <table class="proj-table">
+        <thead><tr><th>Year</th><th>Property</th><th>RRSP+TFSA</th><th>RE Equity</th><th>Cash Reserve</th><th>Net Worth</th><th>Milestone</th></tr></thead>
+        <tbody>${trows}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="font-size:12px;color:var(--g4)">
+    <strong style="color:var(--text)">Model assumptions:</strong> Portfolio: ${fmtP(asm.port_return)} avg annual return · RE: ${fmtP(asm.re_growth)} appreciation · Property 1 bought Yr 2 @ ${fmt(asm.prop1_price)}, ${fmtP(asm.prop1_dp_pct)} down · Refinance Yr 5 → Property 2 @ ${fmt(asm.prop2_price)} · Mortgage paydown ~$12K/yr · Tax refund reinvested each April
+  </div>`;
+
+  setTimeout(()=>{
+    if (projChart) projChart.destroy();
+    projChart = new Chart(document.getElementById('projCanvas'),{
+      type:'bar',
+      data:{
+        labels: years,
+        datasets:[
+          {label:'RRSP+TFSA', data:portfolio, backgroundColor:'#2563EB', stack:'s'},
+          {label:'RE Equity',  data:reEq,     backgroundColor:'#B45309', stack:'s'},
+          {label:'Net worth',  data:nw, type:'line', borderColor:'#16A34A',
+           backgroundColor:'rgba(22,163,74,.08)', fill:true, tension:.35,
+           pointRadius:4, borderWidth:2.5, yAxisID:'y'}
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${Math.round(c.raw).toLocaleString()}`}}},
+        scales:{
+          x:{stacked:true, ticks:{font:{size:11}}},
+          y:{stacked:true, ticks:{callback:v=>'$'+Math.round(v/1000)+'K', font:{size:11}}}
+        }
+      }
+    });
+  }, 80);
+}
+
+// ── How to use ────────────────────────────────────────────────────────────
+function renderHowto() {
+  const el = document.getElementById('panel-howto');
+  el.innerHTML = `
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">Quick start guide</div>
+        ${[
+          ['1', 'Open the Assumptions tab', 'Change any blue input field — income, rent, targets. Every tab updates instantly.'],
+          ['2', 'Set up automatic transfers', 'Schedule 3 auto-transfers on the 1st of each month: RRSP, TFSA, RE fund.'],
+          ['3', 'Monthly check-in', 'Open Monthly Tracker, enter your actual contributions. Check off each transfer.'],
+          ['4', 'April — tax refund', 'File Quebec taxes before April 30. When ~$3,780 arrives, enter it in the April refund field and transfer to RE fund.'],
+          ['5', 'Year 2 — buy duplex', 'You\'ll have ~$64K saved. Target a $500K duplex with 10% down in Sherbrooke, Trois-Rivières, or similar.'],
+          ['6', 'Never stop investing', 'Keep RRSP + TFSA running after buying property. This is the most critical rule.'],
+        ].map(([n,t,d])=>`<div style="display:flex;gap:12px;margin-bottom:12px"><div style="width:26px;height:26px;border-radius:50%;background:var(--navy);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px">${t}</div><div style="font-size:12px;color:var(--g4)">${d}</div></div></div>`).join('')}
+      </div>
+      <div class="card" style="border-color:var(--amber)">
+        <div class="card-title">Tax refund — critical timing</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--text)">
+          <p>The refund does <strong>not</strong> arrive monthly. It comes <strong>once per year, in April</strong>, after you file your Quebec taxes.</p>
+          <br>
+          <p>File by <strong>April 30</strong> → refund arrives in 2–4 weeks → transfer 100% to RE fund immediately. Do not spend it.</p>
+          <br>
+          <p>This lump sum (~$3,780) is modelled correctly in the Capital Build and Monthly Tracker tabs as an April-only event.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">8-year milestone plan</div>
+        ${[
+          ['2025','Year 1','Build capital. Automate $2,400/month. Never miss a transfer.','var(--ltblue)','var(--blue-text)'],
+          ['2026–27','Year 2','~$64K saved → Buy duplex ~$500K, 10% down. Rent covers much of mortgage.','var(--ltblue)','var(--blue-text)'],
+          ['2028–30','Years 3–5','Continue RRSP + TFSA monthly. Property 1 appreciating and mortgage decreasing.','var(--g1)','var(--text)'],
+          ['2030–31','Year 5–6','Property 1 equity ~$150K → refinance → extract $60–80K for Property 2.','var(--ltamber)','var(--amber-text)'],
+          ['2031–32','Years 6–7','Buy Property 2 ~$600K. Now control ~$1.1M in real estate.','var(--ltamber)','var(--amber-text)'],
+          ['2033','Year 8','RE equity ~$400K + portfolio ~$200K + cash = ~$620K+ net worth. Path to $1M if appreciation stronger.','var(--ltgreen)','var(--green-text)'],
+        ].map(([yr,lbl,d,bg,fc])=>`<div style="display:flex;gap:10px;margin-bottom:8px;padding:10px 12px;background:${bg};border-radius:8px"><div style="min-width:80px;font-size:12px;font-weight:700;color:${fc}">${yr}<br><span style="font-size:10px;font-weight:400;color:var(--g4)">${lbl}</span></div><div style="font-size:12px;color:var(--text)">${d}</div></div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title">Monthly automation checklist</div>
+        ${[
+          ['Auto-transfer RRSP on 1st of month','var(--ltblue)'],
+          ['Auto-transfer TFSA on 1st of month','var(--ltgreen)'],
+          ['Auto-transfer RE fund on 1st of month','var(--ltamber)'],
+          ['File Quebec taxes before April 30','var(--ltamber)'],
+          ['Reinvest 100% of tax refund → RE fund (April)','var(--ltamber)'],
+          ['Keep investing after buying property — never stop','var(--ltgreen)'],
+        ].map(([t,bg])=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:${bg};border-radius:6px;margin-bottom:6px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span>${t}</div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Render map ────────────────────────────────────────────────────────────
+const renders = {
+  assumptions: renderAssumptions,
+  monthly:     renderMonthly,
+  budget:      renderBudget,
+  capital:     renderCapital,
+  projection:  renderProjection,
+  howto:       renderHowto,
+};
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadData();
+renderKPI();
+renderAssumptions();
+</script>
+</body>
+</html>
