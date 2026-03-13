@@ -224,9 +224,68 @@ tbody tr.proj-milestone td:first-child { color:var(--amber)!important; font-fami
 /* Flash animation for calc updates */
 @keyframes numFlash { 0%{opacity:.4} 100%{opacity:1} }
 .flash { animation:numFlash .4s ease; }
+
+/* Quote banner */
+.quote-banner {
+  width: 100%;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  position: relative;
+}
+.quote-slot {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  height: 20px;
+}
+.quote-visible {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: opacity 1.2s ease;
+}
+.quote-visible.hide { opacity: 0; pointer-events: none; }
+.quote-visible.show { opacity: 1; }
+.q-text {
+  font-size: 12px;
+  color: var(--text2);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 680px;
+}
+.q-sep { color: var(--text3); font-size: 11px; flex-shrink:0; }
+.q-attr {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media(max-width:600px){ .q-text { white-space:normal; font-size:11px; } .quote-slot { height:auto; min-height:20px; } }
 </style>
 </head>
 <body>
+
+<div class="quote-banner" aria-live="polite">
+  <div class="quote-slot">
+    <div class="quote-visible show" id="qA"></div>
+    <div class="quote-visible hide" id="qB"></div>
+  </div>
+</div>
+
 <div class="shell">
 
   <header class="header">
@@ -682,6 +741,52 @@ function renderHowto(){
 }
 
 load(); renderKPI(); renderAssumptions();
+
+// ── Quote crossfade — 1 quote per minute ───────────────────────────
+(function(){
+  const quotes=[
+    {text:"The secret to wealth is simple: find a way to do more for others than anyone else does.",attr:"Tony Robbins"},
+    {text:"Don't tell me where your priorities are. Show me where your money goes.",attr:"James W. Frick"},
+    {text:"Telling people what they want to hear is expensive. Doing what is right, in silence, is how wealth is built.",attr:"—"},
+    {text:"The ability to delay gratification is the single most powerful predictor of future success.",attr:"Walter Mischel"},
+    {text:"Rich people have small TVs and big libraries. Poor people have small libraries and big TVs.",attr:"Zig Ziglar"},
+    {text:"Stop buying things you don't need, to impress people you don't like, with money you don't have.",attr:"Will Rogers"},
+    {text:"Every dollar you spend today is a future dollar you chose not to invest.",attr:"—"},
+    {text:"Wealth, like a tree, grows from a tiny seed. The sooner you plant it, the sooner you rest in its shade.",attr:"George S. Clason"},
+    {text:"Do not save what is left after spending, but spend what is left after saving.",attr:"Warren Buffett"},
+    {text:"The pain of discipline is far less than the pain of regret.",attr:"—"},
+    {text:"Comfort is the enemy of achievement. Delayed gratification is the friend of wealth.",attr:"—"},
+    {text:"People pleasing is financial suicide — you're spending your future to manage someone else's feelings.",attr:"—"},
+    {text:"You don't have to be brilliant, only a little bit wiser than the other guys, on average, for a long, long time.",attr:"Charlie Munger"},
+    {text:"It's not your salary that makes you rich, it's your spending habits.",attr:"Charles A. Jaffe"},
+    {text:"Never depend on a single income. Make investments to create a second source.",attr:"Warren Buffett"},
+    {text:"The individual who says it is not possible should move out of the way of those doing it.",attr:"Tricia Cunningham"},
+    {text:"Seek approval from your future self, not from the crowd around you.",attr:"—"},
+    {text:"Time in the market beats timing the market — always.",attr:"—"},
+    {text:"Your net worth is the sum of every quiet decision no one saw you make.",attr:"—"},
+    {text:"An investment in knowledge pays the best interest.",attr:"Benjamin Franklin"},
+  ];
+
+  function qHTML(q){
+    return `<span class="q-text">"${q.text}"</span><span class="q-sep">·</span><span class="q-attr">${q.attr}</span>`;
+  }
+
+  const elA=document.getElementById('qA');
+  const elB=document.getElementById('qB');
+  let idx=0, useA=true;
+
+  elA.innerHTML=qHTML(quotes[0]);
+
+  setInterval(()=>{
+    idx=(idx+1)%quotes.length;
+    const next=useA?elB:elA;
+    const curr=useA?elA:elB;
+    next.innerHTML=qHTML(quotes[idx]);
+    next.classList.remove('hide'); next.classList.add('show');
+    curr.classList.remove('show'); curr.classList.add('hide');
+    useA=!useA;
+  }, 60000); // exactly 60 seconds
+})();
 </script>
 </body>
 </html>
