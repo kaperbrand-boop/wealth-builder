@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Builder — Montreal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:#0D1117; --bg2:#161B22; --bg3:#1C2128; --bg4:#21262D;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --text:#E6EDF3; --text2:#8B949E; --text3:#484F58;
+  --blue:#58A6FF; --blue-bg:rgba(88,166,255,0.10); --blue-glow:rgba(88,166,255,0.25);
+  --green:#3FB950; --green-bg:rgba(63,185,80,0.10); --green-dim:rgba(63,185,80,0.06);
+  --amber:#E3B341; --amber-bg:rgba(227,179,65,0.10);
+  --red:#F85149; --purp:#BC8CFF; --purp-bg:rgba(188,140,255,0.10);
+  --radius:10px; --radius-lg:16px; --radius-xl:20px;
+  --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+.shell { max-width: 1140px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* Header */
+.header { padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.wordmark { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 6px; }
+.tagline { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+.tagline span { color: var(--green); }
+.header-meta { font-size: 13px; color: var(--text3); font-family: var(--mono); }
+
+/* KPI strip */
+.kpi-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+@media(max-width:720px){ .kpi-strip { grid-template-columns: 1fr 1fr; } }
+@media(max-width:420px){ .kpi-strip { grid-template-columns: 1fr; } }
+
+.kpi { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; transition: border-color .2s, transform .15s; position: relative; overflow: hidden; animation: slideIn .3s ease both; }
+.kpi:nth-child(1){animation-delay:.05s} .kpi:nth-child(2){animation-delay:.10s} .kpi:nth-child(3){animation-delay:.15s} .kpi:nth-child(4){animation-delay:.20s}
+@keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.kpi::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; border-radius:2px 2px 0 0; }
+.kpi.green::before{background:var(--green)} .kpi.blue::before{background:var(--blue)} .kpi.amber::before{background:var(--amber)} .kpi.purp::before{background:var(--purp)}
+.kpi:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kpi-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; font-weight:500; }
+.kpi-value { font-size:24px; font-weight:600; font-family:var(--mono); letter-spacing:-0.5px; line-height:1; }
+.kpi.green .kpi-value{color:var(--green)} .kpi.blue .kpi-value{color:var(--blue)} .kpi.amber .kpi-value{color:var(--amber)} .kpi.purp .kpi-value{color:var(--purp)}
+.kpi-sub { font-size:11px; color:var(--text3); margin-top:5px; font-family:var(--mono); }
+
+/* Nav */
+.nav { display:flex; gap:2px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:4px; margin-bottom:24px; overflow-x:auto; }
+.nav-btn { flex:1; min-width:90px; padding:9px 16px; font-size:13px; font-weight:500; font-family:var(--font); color:var(--text2); background:transparent; border:none; border-radius:var(--radius); cursor:pointer; white-space:nowrap; transition:all .18s; }
+.nav-btn:hover { color:var(--text); background:var(--bg3); }
+.nav-btn.active { color:var(--text); background:var(--bg4); box-shadow:0 1px 4px rgba(0,0,0,.4); }
+
+/* Panels */
+.panel { display:none; animation: fadeUp .25s ease; }
+.panel.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* Cards */
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px; margin-bottom:16px; }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.card-title { font-size:15px; font-weight:600; }
+.card-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+.section-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+@media(max-width:680px){ .two-col{grid-template-columns:1fr} }
+@media(max-width:520px){ .three-col{grid-template-columns:1fr 1fr} }
+
+/* Input field rows */
+.field-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); transition:border-color .2s,background .2s; margin-bottom:8px; cursor:text; }
+.field-row:hover { border-color:var(--border2); }
+.field-row:focus-within { border-color:var(--blue); background:var(--bg2); box-shadow:0 0 0 3px var(--blue-glow); }
+.field-row:focus-within .field-label { color:var(--blue); }
+.field-left { flex:1; min-width:0; }
+.field-label { font-size:13px; color:var(--text2); font-weight:400; transition:color .2s; }
+.field-note { font-size:11px; color:var(--text3); margin-top:1px; font-family:var(--mono); }
+.field-right { display:flex; align-items:center; gap:4px; }
+.field-prefix { font-size:13px; color:var(--text3); font-family:var(--mono); flex-shrink:0; }
+.field-input { background:transparent; border:none; outline:none; font-size:16px; font-weight:600; font-family:var(--mono); color:var(--blue); text-align:right; width:110px; padding:0; }
+.field-input::placeholder { color:var(--text3); }
+.field-input::-webkit-inner-spin-button, .field-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+
+/* Calc rows */
+.calc-row { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--bg3); border-radius:var(--radius); margin-bottom:6px; }
+.calc-row .lbl { font-size:13px; color:var(--text2); }
+.calc-row .val { font-size:14px; font-weight:600; font-family:var(--mono); color:var(--text); transition:color .3s; }
+.calc-row.highlight { background:var(--green-bg); }
+.calc-row.highlight .val { color:var(--green); }
+.calc-row.amber-row { background:var(--amber-bg); }
+.calc-row.amber-row .val { color:var(--amber); }
+.divider { height:1px; background:var(--border); margin:16px 0; }
+
+/* Badges */
+.badge { display:inline-flex; align-items:center; font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; }
+.badge-green{background:var(--green-bg);color:var(--green)} .badge-blue{background:var(--blue-bg);color:var(--blue)} .badge-amber{background:var(--amber-bg);color:var(--amber)} .badge-gray{background:var(--bg4);color:var(--text3)}
+
+/* Progress */
+.prog-wrap { margin-bottom:14px; }
+.prog-meta { display:flex; justify-content:space-between; font-size:12px; color:var(--text3); margin-bottom:6px; }
+.prog-meta .prog-label { color:var(--text2); font-weight:500; }
+.prog-bg { height:6px; background:var(--bg4); border-radius:3px; overflow:hidden; }
+.prog-fill { height:6px; border-radius:3px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+/* Month grid */
+.month-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+.month-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; transition:border-color .2s; }
+.month-card:hover { border-color:var(--border2); }
+.month-card.current { border-color:rgba(88,166,255,.4); box-shadow:0 0 0 1px rgba(88,166,255,.15),0 4px 20px rgba(88,166,255,.08); }
+.month-card.april { border-color:rgba(227,179,65,.35); }
+.month-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.month-name { font-size:14px; font-weight:600; }
+
+/* Alloc bars */
+.alloc { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.alloc-label { font-size:11px; color:var(--text3); width:76px; flex-shrink:0; }
+.alloc-bar-bg { flex:1; height:3px; background:var(--bg4); border-radius:2px; overflow:hidden; }
+.alloc-bar { height:3px; border-radius:2px; transition:width .4s ease; }
+.alloc-amount { font-size:11px; font-family:var(--mono); font-weight:500; width:52px; text-align:right; flex-shrink:0; }
+
+/* Month inputs */
+.month-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:14px; }
+.month-inputs.april-grid { grid-template-columns:1fr 1fr 1fr 1fr; }
+.minput-wrap { position:relative; }
+.minput-label { font-size:10px; color:var(--text3); font-weight:600; letter-spacing:.07em; text-transform:uppercase; margin-bottom:5px; }
+.dollar-pfx { position:absolute; left:9px; bottom:11px; font-size:13px; color:var(--text3); font-family:var(--mono); pointer-events:none; }
+.minput { width:100%; padding:10px 10px 10px 20px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-weight:600; font-family:var(--mono); color:var(--blue); outline:none; transition:border-color .2s,background .2s,box-shadow .2s; }
+.minput.amber-inp { color:var(--amber); }
+.minput:focus { border-color:var(--blue); background:var(--bg2); box-shadow:0 0 0 3px var(--blue-glow); }
+.minput.amber-inp:focus { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-bg); }
+.minput::-webkit-inner-spin-button,.minput::-webkit-outer-spin-button{-webkit-appearance:none}
+.minput::placeholder { color:var(--text3); font-weight:400; }
+
+/* Checks */
+.check-list { margin-top:12px; display:flex; flex-direction:column; gap:3px; }
+.check-item { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; cursor:pointer; transition:background .15s; font-size:12px; color:var(--text2); user-select:none; }
+.check-item:hover { background:var(--bg3); }
+.check-item.checked { color:var(--text3); text-decoration:line-through; }
+.chk-box { width:16px;height:16px; border:1.5px solid var(--border2); border-radius:4px; display:flex;align-items:center;justify-content:center; flex-shrink:0; transition:all .15s; }
+.check-item.checked .chk-box { background:var(--green); border-color:var(--green); }
+.chk-svg { display:none; }
+.check-item.checked .chk-svg { display:block; }
+
+.mnote { width:100%; margin-top:12px; padding:9px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text2); font-family:var(--font); resize:none; height:46px; outline:none; transition:border-color .2s; }
+.mnote:focus { border-color:var(--border2); }
+.mnote::placeholder { color:var(--text3); }
+.month-footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text3); }
+.ftotal { font-family:var(--mono); font-weight:600; color:var(--text); font-size:14px; }
+
+.april-note { background:var(--amber-bg); border:1px solid rgba(227,179,65,.2); border-radius:var(--radius); padding:9px 12px; font-size:12px; color:var(--amber); margin-bottom:12px; }
+
+/* Budget */
+.bsection-title { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.1em; padding:6px 16px 6px; margin-top:8px; }
+.budget-line { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-radius:var(--radius); font-size:13px; transition:background .15s; }
+.budget-line:hover { background:var(--bg3); }
+.budget-line .blabel { color:var(--text2); }
+.budget-line .bval { font-family:var(--mono); font-weight:600; color:var(--text); }
+.budget-line.subtotal { background:var(--bg3); margin:4px 0; }
+.budget-line.subtotal .blabel { color:var(--text); font-weight:500; }
+.budget-line.invest .bval { color:var(--green); }
+.budget-line.total { background:var(--green-dim); border:1px solid rgba(63,185,80,.2); margin-top:8px; }
+.budget-line.total .blabel { font-weight:600; }
+.budget-line.total .bval { color:var(--green); font-size:16px; }
+.budget-line.amber-line .bval { color:var(--amber); }
+
+/* Mini stats */
+.mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+.mini-stat { background:var(--bg3); border-radius:var(--radius); padding:14px 16px; border:1px solid var(--border); }
+.ms-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:5px; font-weight:500; }
+.ms-value { font-size:18px; font-weight:600; font-family:var(--mono); }
+.ms-sub { font-size:10px; color:var(--text3); margin-top:3px; font-family:var(--mono); }
+
+/* Tables */
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead th { padding:10px 14px; text-align:right; font-size:10px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid var(--border); white-space:nowrap; }
+thead th:first-child { text-align:left; }
+tbody td { padding:10px 14px; text-align:right; color:var(--text2); font-family:var(--mono); font-size:12px; border-bottom:1px solid var(--border); }
+tbody td:first-child { text-align:left; color:var(--text); font-family:var(--font); font-size:13px; }
+tbody tr:hover td { background:var(--bg3); }
+tbody tr.april-tr td { color:var(--amber); }
+tbody tr.april-tr { background:rgba(227,179,65,.04); }
+.cum-td { color:var(--green)!important; font-weight:600!important; }
+.tfoot-row td { border-top:2px solid var(--border2); color:var(--text)!important; font-weight:600!important; background:var(--bg3); }
+.port-td{color:var(--blue)!important} .re-td{color:var(--amber)!important} .nw-td{color:var(--green)!important;font-weight:600!important}
+tbody tr.proj-milestone { background:rgba(227,179,65,.05)!important; }
+tbody tr.proj-milestone td:first-child { color:var(--amber)!important; font-family:var(--font)!important; }
+
+/* Chart */
+.chart-wrap { position:relative; width:100%; height:300px; margin-top:8px; }
+.legend { display:flex; flex-wrap:wrap; gap:16px; font-size:12px; color:var(--text3); margin-bottom:12px; }
+.legend span { display:flex; align-items:center; gap:6px; }
+.ldot { width:10px; height:10px; border-radius:2px; display:inline-block; flex-shrink:0; }
+
+/* Info box */
+.info-box { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; font-size:12px; color:var(--text2); line-height:1.7; margin-top:12px; }
+.info-box strong { color:var(--text); font-weight:600; }
+
+/* How to use */
+.step { display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+.step:last-child { border-bottom:none; }
+.step-num { width:28px;height:28px; border-radius:50%; background:var(--blue-bg); border:1px solid rgba(88,166,255,.25); color:var(--blue); font-size:11px; font-weight:700; display:flex;align-items:center;justify-content:center; flex-shrink:0; margin-top:2px; }
+.step-title { font-size:14px; font-weight:600; margin-bottom:3px; }
+.step-desc { font-size:13px; color:var(--text2); line-height:1.6; }
+.multiplier { display:flex; gap:12px; padding:14px 16px; background:var(--bg3); border-radius:var(--radius); border-left:3px solid transparent; margin-bottom:8px; }
+.mult-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.mult-title { font-size:13px; font-weight:600; margin-bottom:2px; }
+.mult-desc { font-size:12px; color:var(--text2); }
+.ci { display:flex; gap:10px; padding:10px 14px; border-radius:var(--radius); font-size:13px; margin-bottom:6px; align-items:center; background:var(--bg3); }
+.ci-dot { width:6px;height:6px; border-radius:50%; flex-shrink:0; }
+.tl-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.tl-item:last-child { border-bottom:none; }
+.tl-yr { min-width:64px; font-size:11px; font-family:var(--mono); font-weight:600; }
+.tl-content .tl-title { font-size:13px; font-weight:600; margin-bottom:2px; }
+.tl-content .tl-desc { font-size:12px; color:var(--text2); }
+
+/* CC Calendar */
+.cc-cycle-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin-bottom:16px; }
+.cc-month-block { background:var(--bg3); border-radius:var(--radius-lg); padding:16px 18px; border:1px solid var(--border); position:relative; overflow:hidden; }
+.cc-month-block.current-mo { border-color:rgba(88,166,255,.4); box-shadow:0 0 0 1px rgba(88,166,255,.15); }
+.cc-month-block::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; }
+.cc-month-block.current-mo::before { background:var(--blue); }
+.cc-month-block.past-mo::before { background:var(--green); }
+.cc-month-block.future-mo::before { background:var(--text3); }
+.cc-month-name { font-size:13px; font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+.cc-timeline { display:flex; flex-direction:column; gap:6px; }
+.cc-event { display:flex; gap:10px; align-items:flex-start; font-size:12px; }
+.cc-date-badge { min-width:36px; text-align:center; font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 6px; border-radius:6px; flex-shrink:0; }
+.cc-ev-label { color:var(--text2); line-height:1.4; }
+.cc-ev-label strong { color:var(--text); }
+.cc-ev-label em { font-style:normal; color:var(--amber); }
+.cc-ev-label .tip { display:block; font-size:10px; color:var(--text3); margin-top:1px; }
+
+.cc-action-box { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; margin-bottom:12px; }
+.cc-action-title { font-size:13px; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.cc-action-steps { display:flex; flex-direction:column; gap:6px; }
+.cc-step { display:flex; gap:10px; align-items:flex-start; font-size:12px; color:var(--text2); }
+.cc-step-num { width:20px; height:20px; border-radius:50%; background:var(--blue-bg); border:1px solid rgba(88,166,255,.3); color:var(--blue); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cc-step-txt strong { color:var(--text); }
+@keyframes numFlash { 0%{opacity:.4} 100%{opacity:1} }
+.flash { animation:numFlash .4s ease; }
+
+/* Quote banner */
+.quote-banner {
+  width: 100%;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  position: relative;
+}
+.quote-slot {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  height: 20px;
+}
+.quote-visible {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: opacity 1.2s ease;
+}
+.quote-visible.hide { opacity: 0; pointer-events: none; }
+.quote-visible.show { opacity: 1; }
+.q-text {
+  font-size: 12px;
+  color: var(--text2);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 680px;
+}
+.q-sep { color: var(--text3); font-size: 11px; flex-shrink:0; }
+.q-attr {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media(max-width:600px){ .q-text { white-space:normal; font-size:11px; } .quote-slot { height:auto; min-height:20px; } }
+
+/* ── Credit Score Tab ──────────────────────────────────────────────── */
+.score-hero { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+@media(max-width:600px){ .score-hero { grid-template-columns:1fr; } }
+
+.score-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-xl);
+  padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  position:relative; overflow:hidden;
+}
+.score-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; }
+.score-card.eq::before  { background: linear-gradient(90deg,#58A6FF,#3FB950); }
+.score-card.tu::before  { background: linear-gradient(90deg,#BC8CFF,#58A6FF); }
+.score-bureau { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); }
+.score-num { font-size:52px; font-weight:600; font-family:var(--mono); line-height:1; letter-spacing:-2px; }
+.score-card.eq .score-num { color:var(--blue); }
+.score-card.tu .score-num { color:var(--purp); }
+.score-band { font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; margin-top:2px; }
+.score-delta { font-size:12px; font-family:var(--mono); margin-top:4px; }
+.score-delta.up   { color:var(--green); }
+.score-delta.down { color:var(--red); }
+.score-delta.flat { color:var(--text3); }
+.score-goal { font-size:11px; color:var(--text3); margin-top:2px; }
+
+/* gauge arc */
+.gauge-wrap { position:relative; width:120px; height:70px; margin:4px 0; }
+.gauge-wrap svg { width:120px; height:70px; }
+
+/* entry form */
+.entry-form {
+  display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto;
+  gap:8px; align-items:end; margin-bottom:16px;
+}
+@media(max-width:680px){ .entry-form { grid-template-columns:1fr 1fr; } }
+.ef-group { display:flex; flex-direction:column; gap:5px; }
+.ef-label { font-size:10px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; }
+.ef-input {
+  padding:10px 12px; background:var(--bg3); border:1px solid var(--border);
+  border-radius:var(--radius); font-size:14px; font-weight:600; font-family:var(--mono);
+  color:var(--text); outline:none; transition:border-color .2s, box-shadow .2s; width:100%;
+}
+.ef-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-glow); }
+.ef-input::placeholder { color:var(--text3); font-weight:400; }
+.ef-btn {
+  padding:10px 20px; background:var(--blue); border:none; border-radius:var(--radius);
+  font-size:13px; font-weight:600; font-family:var(--font); color:#fff; cursor:pointer;
+  transition:background .2s, transform .1s; white-space:nowrap; align-self:end;
+}
+.ef-btn:hover { background:#79b8ff; }
+.ef-btn:active { transform:scale(.97); }
+
+/* history table */
+.cr-history { width:100%; border-collapse:collapse; font-size:13px; }
+.cr-history thead th { padding:9px 12px; text-align:right; font-size:10px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid var(--border); }
+.cr-history thead th:first-child { text-align:left; }
+.cr-history tbody td { padding:9px 12px; text-align:right; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:12px; color:var(--text2); }
+.cr-history tbody td:first-child { text-align:left; color:var(--text); font-family:var(--font); font-size:13px; }
+.cr-history tbody tr:hover td { background:var(--bg3); }
+.delta-up   { color:var(--green)!important; font-weight:600!important; }
+.delta-down { color:var(--red)!important; font-weight:600!important; }
+.delta-flat { color:var(--text3)!important; }
+
+.del-btn { background:none; border:none; color:var(--text3); cursor:pointer; font-size:13px; padding:2px 6px; border-radius:4px; transition:color .15s,background .15s; }
+.del-btn:hover { color:var(--red); background:var(--red-bg); }
+
+/* advice boxes */
+.advice-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:600px){ .advice-grid { grid-template-columns:1fr; } }
+.advice-item {
+  display:flex; gap:12px; padding:14px 16px;
+  background:var(--bg3); border-radius:var(--radius);
+  border-left:3px solid transparent;
+}
+.adv-icon { font-size:20px; flex-shrink:0; }
+.adv-title { font-size:13px; font-weight:600; margin-bottom:3px; }
+.adv-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
+.adv-tag   { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-top:5px; letter-spacing:.04em; text-transform:uppercase; }
+
+/* milestone bar */
+.milestone-track { position:relative; margin:16px 0 8px; }
+.milestone-bar { height:8px; background:var(--bg4); border-radius:4px; overflow:visible; position:relative; }
+.milestone-fill { height:8px; border-radius:4px; background:linear-gradient(90deg,var(--red),var(--amber),var(--green)); transition:width .8s cubic-bezier(.4,0,.2,1); }
+.milestone-pins { position:relative; display:flex; justify-content:space-between; margin-top:6px; }
+.mpin { text-align:center; font-size:10px; font-family:var(--mono); }
+.mpin .mp-score { font-weight:600; }
+.mpin .mp-label { color:var(--text3); font-size:9px; display:block; }
+.mpin.reached .mp-score { color:var(--green); }
+.mpin.current-pos { position:absolute; top:-22px; transform:translateX(-50%); }
+.mpin.current-pos .mp-score { color:var(--blue); font-size:11px; background:var(--bg); border:1px solid var(--blue); padding:1px 6px; border-radius:4px; }
+
+/* utilization ring */
+.util-ring { display:flex; align-items:center; gap:20px; padding:16px 20px; background:var(--bg3); border-radius:var(--radius-lg); }
+.util-circle { position:relative; width:72px; height:72px; flex-shrink:0; }
+.util-circle svg { transform:rotate(-90deg); }
+.util-pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; font-family:var(--mono); }
+.util-info .util-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.util-info .util-sub   { font-size:12px; color:var(--text2); line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div class="quote-banner" aria-live="polite">
+  <div class="quote-slot">
+    <div class="quote-visible show" id="qA"></div>
+    <div class="quote-visible hide" id="qB"></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <header class="header">
+    <div>
+      <div class="wordmark">Wealth Builder · Montreal QC</div>
+      <div class="tagline">7-Year Path to <span>$620K+</span></div>
+    </div>
+    <div class="header-meta">2025 · $49K net income</div>
+  </header>
+
+  <div class="kpi-strip" id="kpiStrip"></div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="go('assumptions',this)">Assumptions</button>
+    <button class="nav-btn" onclick="go('monthly',this)">Monthly Tracker</button>
+    <button class="nav-btn" onclick="go('budget',this)">Budget</button>
+    <button class="nav-btn" onclick="go('capital',this)">Capital Build</button>
+    <button class="nav-btn" onclick="go('projection',this)">8-Year View</button>
+    <button class="nav-btn" onclick="go('howto',this)">Guide</button>
+    <button class="nav-btn" onclick="go('credit',this)">📈 Credit Score</button>
+    <button class="nav-btn" onclick="go('networth',this)">💎 Net Worth</button>
+  </nav>
+
+  <div id="panel-assumptions" class="panel active"></div>
+  <div id="panel-monthly"     class="panel"></div>
+  <div id="panel-budget"      class="panel"></div>
+  <div id="panel-capital"     class="panel"></div>
+  <div id="panel-projection"  class="panel"></div>
+  <div id="panel-howto"       class="panel"></div>
+  <div id="panel-credit"      class="panel"></div>
+  <div id="panel-networth"    class="panel"></div>
+
+</div>
+
+<script>
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const DEFAULTS={
+  net_income:49000,rent:447,phone:50,gym:50,internet:50,
+  food:500,transport:250,misc:300,
+  rrsp_mo:900,tfsa_mo:600,re_mo:900,
+  tax_rate:35,port_return:7,re_growth:4,
+  prop1_price:500000,prop1_dp:10,
+  prop2_price:600000,prop2_dp:10
+};
+
+let A={...DEFAULTS}, M={};
+
+function load(){
+  try{const a=localStorage.getItem('wb3_asm');if(a)A={...DEFAULTS,...JSON.parse(a)};const m=localStorage.getItem('wb3_mon');if(m)M=JSON.parse(m);}catch(e){}
+}
+function save(){
+  try{localStorage.setItem('wb3_asm',JSON.stringify(A));localStorage.setItem('wb3_mon',JSON.stringify(M));}catch(e){}
+}
+function getM(yr,mo){
+  const k=`${yr}-${mo}`;
+  if(!M[k])M[k]={rrsp:0,tfsa:0,re:0,refund:0,checks:[false,false,false,false],note:''};
+  return M[k];
+}
+
+function C(){
+  const mo_net=A.net_income/12,fix=A.rent+A.phone+A.gym+A.internet,vari=A.food+A.transport+A.misc;
+  const mo_inv=A.rrsp_mo+A.tfsa_mo+A.re_mo,mo_free=mo_net-fix-vari-mo_inv;
+  const yr_rrsp=A.rrsp_mo*12,refund=yr_rrsp*(A.tax_rate/100);
+  const yr_inv=mo_inv*12,yr_total=yr_inv+refund;
+  return{mo_net,fix,vari,mo_inv,mo_free,yr_rrsp,refund,yr_inv,yr_total,sav:mo_inv/mo_net,house:A.rent/mo_net};
+}
+
+function fm(n){return '$'+(Math.round(n||0)).toLocaleString();}
+function fp(v,t){return t===0?0:Math.min(100,Math.round(v/t*100));}
+function fpc(v){return Math.round(v*100)+'%';}
+
+function renderKPI(){
+  const c=C();
+  document.getElementById('kpiStrip').innerHTML=`
+    <div class="kpi green"><div class="kpi-label">Monthly invested</div><div class="kpi-value">${fm(c.mo_inv)}</div><div class="kpi-sub">${fpc(c.sav)} savings rate</div></div>
+    <div class="kpi blue"><div class="kpi-label">Annual from savings</div><div class="kpi-value">${fm(c.yr_inv)}</div><div class="kpi-sub">+${fm(c.refund)} refund in April</div></div>
+    <div class="kpi amber"><div class="kpi-label">Total per year</div><div class="kpi-value">${fm(c.yr_total)}</div><div class="kpi-sub">yr 2 cumulative ~${fm(c.yr_total*2)}</div></div>
+    <div class="kpi purp"><div class="kpi-label">Housing ratio</div><div class="kpi-value">${fpc(c.house)}</div><div class="kpi-sub">vs 30–40% Cdn avg</div></div>`;
+}
+
+const renders={assumptions:renderAssumptions,monthly:renderMonthly,budget:renderBudget,capital:renderCapital,projection:renderProjection,howto:renderHowto,credit:renderCredit,networth:renderNetWorth};
+
+function go(name,btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  renders[name]();
+}
+
+function frow(key,label,note,isPct){
+  const val=A[key];
+  return `<div class="field-row" onclick="this.querySelector('input').focus()">
+    <div class="field-left">
+      <div class="field-label">${label}</div>
+      ${note?`<div class="field-note">${note}</div>`:''}
+    </div>
+    <div class="field-right">
+      ${!isPct?'<span class="field-prefix">$</span>':''}
+      <input class="field-input" type="number" id="f-${key}" value="${val}"
+        ${isPct?'min="1" max="99" step="1"':'min="0"'}
+        oninput="updA('${key}',this.value,${!!isPct})">
+      ${isPct?'<span class="field-prefix">%</span>':''}
+    </div>
+  </div>`;
+}
+
+function renderAssumptions(){
+  const c=C();
+  document.getElementById('panel-assumptions').innerHTML=`
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="section-label">Income</div>
+        ${frow('net_income','Annual net income','After all taxes, before investing')}
+        <div class="calc-row highlight"><span class="lbl">Monthly net income</span><span class="val" id="c-mo_net">${fm(c.mo_net)}</span></div>
+      </div>
+      <div class="card">
+        <div class="section-label">Fixed monthly expenses</div>
+        ${frow('rent','Rent','Your biggest competitive advantage')}
+        ${frow('phone','Phone','')}
+        ${frow('gym','Gym','')}
+        ${frow('internet','Internet','')}
+        <div class="calc-row"><span class="lbl">Total fixed</span><span class="val" id="c-fix">${fm(c.fix)}</span></div>
+      </div>
+      <div class="card">
+        <div class="section-label">Variable monthly expenses</div>
+        ${frow('food','Food','')}
+        ${frow('transport','Transport','')}
+        ${frow('misc','Miscellaneous','')}
+        <div class="calc-row"><span class="lbl">Total variable</span><span class="val" id="c-vari">${fm(c.vari)}</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="section-label">Monthly investment targets</div>
+        ${frow('rrsp_mo','RRSP',`${fm(A.rrsp_mo*12)}/yr · tax refund arrives April`)}
+        ${frow('tfsa_mo','TFSA','Tax-free growth — forever')}
+        ${frow('re_mo','Real estate fund','Building toward down payment')}
+        <div class="calc-row highlight"><span class="lbl">Total monthly invested</span><span class="val" id="c-mo_inv">${fm(c.mo_inv)}</span></div>
+        <div class="calc-row"><span class="lbl">Free cash flow (buffer)</span><span class="val" id="c-mo_free">${fm(c.mo_free)}</span></div>
+      </div>
+      <div class="card" style="border-color:rgba(227,179,65,.25)">
+        <div class="section-label" style="color:var(--amber)">RRSP tax refund — April only</div>
+        <div class="calc-row amber-row" style="margin-bottom:10px"><span class="lbl">Annual RRSP contribution</span><span class="val" id="c-yr_rrsp">${fm(c.yr_rrsp)}</span></div>
+        ${frow('tax_rate','Quebec marginal rate','~35% combined fed + provincial',true)}
+        <div class="calc-row amber-row" style="margin-top:8px">
+          <span class="lbl" style="font-weight:600;color:var(--amber)">Estimated refund</span>
+          <span class="val" id="c-refund" style="color:var(--amber);font-size:18px">${fm(c.refund)}</span>
+        </div>
+        <div class="info-box">Arrives <strong>once per year in April</strong> after filing Quebec taxes. Reinvest 100% to real estate fund immediately. Do not spend it.</div>
+      </div>
+      <div class="card">
+        <div class="section-label">Growth assumptions</div>
+        ${frow('port_return','Portfolio annual return','Conservative 7% baseline',true)}
+        ${frow('re_growth','Real estate appreciation','Conservative 4% baseline',true)}
+        <div class="divider"></div>
+        ${frow('prop1_price','Target duplex price','Year 2 purchase')}
+        ${frow('prop1_dp','Down payment % — property 1','10% = '+fm(A.prop1_price*A.prop1_dp/100),true)}
+        ${frow('prop2_price','Target property 2 price','Year 5–6 via refinance')}
+        ${frow('prop2_dp','Down payment % — property 2','Funded via equity refinance',true)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function updA(key,val,isPct){
+  A[key]=parseFloat(val)||0;
+  save(); renderKPI();
+  const c=C();
+  const map={'c-mo_net':fm(c.mo_net),'c-fix':fm(c.fix),'c-vari':fm(c.vari),'c-mo_inv':fm(c.mo_inv),'c-mo_free':fm(c.mo_free),'c-yr_rrsp':fm(c.yr_rrsp),'c-refund':fm(c.refund)};
+  for(const[id,v]of Object.entries(map)){
+    const el=document.getElementById(id);
+    if(el){el.textContent=v;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+  }
+}
+
+function renderMonthly(){
+  const yr=2025,cm=new Date().getMonth(),c=C();
+  let html='<div class="month-grid">';
+  for(let i=0;i<12;i++){
+    const m=getM(yr,i),isApr=i===3,isCur=i===cm,isPast=i<cm;
+    const tot=m.rrsp+m.tfsa+m.re+m.refund;
+    const target=c.mo_inv+(isApr?c.refund:0);
+    const p=fp(tot,target);
+    const bc=isPast?'badge-green':isCur?'badge-blue':'badge-gray';
+    const bt=isPast?'Done':isCur?'This month':'Upcoming';
+    const cc=['month-card',isCur?'current':'',isApr?'april':''].filter(Boolean).join(' ');
+    const barColor=isApr?'var(--amber)':isCur?'var(--blue)':'var(--green)';
+    html+=`<div class="${cc}">
+      <div class="month-head"><span class="month-name">${MONTHS[i]}${isApr?' 🍁':''}</span><span class="badge ${bc}">${bt}</span></div>
+      <div class="prog-wrap">
+        <div class="prog-meta"><span class="prog-label">Progress</span><span>${p}% · ${fm(tot)} of ${fm(target)}</span></div>
+        <div class="prog-bg"><div class="prog-fill" style="width:${p}%;background:${barColor}"></div></div>
+      </div>
+      ${isApr?`<div class="april-note">⚡ Tax refund month — add ~${fm(c.refund)} in the refund field below</div>`:''}
+      <div class="alloc"><span class="alloc-label">RRSP</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${fp(m.rrsp,A.rrsp_mo)}%;background:var(--blue)"></div></div><span class="alloc-amount" style="color:var(--blue)">${fm(m.rrsp)}</span></div>
+      <div class="alloc"><span class="alloc-label">TFSA</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${fp(m.tfsa,A.tfsa_mo)}%;background:var(--green)"></div></div><span class="alloc-amount" style="color:var(--green)">${fm(m.tfsa)}</span></div>
+      <div class="alloc"><span class="alloc-label">RE Fund</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${fp(m.re,A.re_mo)}%;background:var(--amber)"></div></div><span class="alloc-amount" style="color:var(--amber)">${fm(m.re)}</span></div>
+      ${isApr?`<div class="alloc"><span class="alloc-label">Refund</span><div class="alloc-bar-bg"><div class="alloc-bar" style="width:${fp(m.refund,c.refund)}%;background:var(--amber)"></div></div><span class="alloc-amount" style="color:var(--amber)">${fm(m.refund)}</span></div>`:''}
+      <div class="month-inputs ${isApr?'april-grid':''}">
+        <div class="minput-wrap"><div class="minput-label">RRSP</div><span class="dollar-pfx">$</span><input class="minput" type="number" min="0" placeholder="0" value="${m.rrsp||''}" oninput="updM(${yr},${i},'rrsp',this.value)"></div>
+        <div class="minput-wrap"><div class="minput-label">TFSA</div><span class="dollar-pfx">$</span><input class="minput" type="number" min="0" placeholder="0" value="${m.tfsa||''}" oninput="updM(${yr},${i},'tfsa',this.value)"></div>
+        <div class="minput-wrap"><div class="minput-label">RE Fund</div><span class="dollar-pfx">$</span><input class="minput" type="number" min="0" placeholder="0" value="${m.re||''}" oninput="updM(${yr},${i},'re',this.value)"></div>
+        ${isApr?`<div class="minput-wrap"><div class="minput-label" style="color:var(--amber)">Refund</div><span class="dollar-pfx" style="color:var(--amber)">$</span><input class="minput amber-inp" type="number" min="0" placeholder="0" value="${m.refund||''}" oninput="updM(${yr},${i},'refund',this.value)"></div>`:''}
+      </div>
+      <div class="check-list">
+        ${['RRSP transfer sent','TFSA transfer sent','RE Fund transfer sent',...(isApr?['Tax refund reinvested']:[])].map((lbl,j)=>`
+        <div class="check-item ${m.checks[j]?'checked':''}" onclick="chkM(${yr},${i},${j})">
+          <div class="chk-box"><svg class="chk-svg" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          ${lbl}
+        </div>`).join('')}
+      </div>
+      <textarea class="mnote" placeholder="Notes for ${MONTHS[i]}…" oninput="noteM(${yr},${i},this.value)">${m.note||''}</textarea>
+      <div class="month-footer"><span>Total contributed</span><span class="ftotal">${fm(tot)}</span></div>
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('panel-monthly').innerHTML=html;
+}
+
+function updM(yr,mo,field,val){
+  getM(yr,mo)[field]=parseFloat(val)||0; save(); renderKPI();
+  const m=getM(yr,mo),c=C(),tot=m.rrsp+m.tfsa+m.re+m.refund,target=c.mo_inv+(mo===3?c.refund:0),p=fp(tot,target);
+  const card=document.querySelectorAll('.month-card')[mo];
+  if(!card)return;
+  const pf=card.querySelector('.prog-fill'); if(pf)pf.style.width=p+'%';
+  const pm=card.querySelectorAll('.prog-meta span'); if(pm[1])pm[1].textContent=`${p}% · ${fm(tot)} of ${fm(target)}`;
+  const bars=card.querySelectorAll('.alloc-bar'),amts=card.querySelectorAll('.alloc-amount');
+  if(bars[0])bars[0].style.width=fp(m.rrsp,A.rrsp_mo)+'%';
+  if(bars[1])bars[1].style.width=fp(m.tfsa,A.tfsa_mo)+'%';
+  if(bars[2])bars[2].style.width=fp(m.re,A.re_mo)+'%';
+  if(amts[0])amts[0].textContent=fm(m.rrsp);
+  if(amts[1])amts[1].textContent=fm(m.tfsa);
+  if(amts[2])amts[2].textContent=fm(m.re);
+  if(mo===3&&bars[3])bars[3].style.width=fp(m.refund,c.refund)+'%';
+  if(mo===3&&amts[3])amts[3].textContent=fm(m.refund);
+  const ft=card.querySelector('.ftotal'); if(ft)ft.textContent=fm(tot);
+}
+function chkM(yr,mo,j){const m=getM(yr,mo);m.checks[j]=!m.checks[j];save();renderMonthly();}
+function noteM(yr,mo,val){getM(yr,mo).note=val;save();}
+
+function renderBudget(){
+  const c=C();
+  document.getElementById('panel-budget').innerHTML=`
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="bsection-title">Income</div>
+        <div class="budget-line"><span class="blabel">Monthly net income</span><span class="bval">${fm(c.mo_net)}</span></div>
+        <div class="bsection-title">Fixed expenses</div>
+        <div class="budget-line"><span class="blabel">Rent</span><span class="bval">${fm(A.rent)}</span></div>
+        <div class="budget-line"><span class="blabel">Phone</span><span class="bval">${fm(A.phone)}</span></div>
+        <div class="budget-line"><span class="blabel">Gym</span><span class="bval">${fm(A.gym)}</span></div>
+        <div class="budget-line"><span class="blabel">Internet</span><span class="bval">${fm(A.internet)}</span></div>
+        <div class="budget-line subtotal"><span class="blabel">Total fixed</span><span class="bval">${fm(c.fix)}</span></div>
+        <div class="bsection-title">Variable expenses</div>
+        <div class="budget-line"><span class="blabel">Food</span><span class="bval">${fm(A.food)}</span></div>
+        <div class="budget-line"><span class="blabel">Transport</span><span class="bval">${fm(A.transport)}</span></div>
+        <div class="budget-line"><span class="blabel">Miscellaneous</span><span class="bval">${fm(A.misc)}</span></div>
+        <div class="budget-line subtotal"><span class="blabel">Total variable</span><span class="bval">${fm(c.vari)}</span></div>
+        <div class="bsection-title">Automated investments</div>
+        <div class="budget-line invest"><span class="blabel">RRSP</span><span class="bval">${fm(A.rrsp_mo)}</span></div>
+        <div class="budget-line invest"><span class="blabel">TFSA</span><span class="bval">${fm(A.tfsa_mo)}</span></div>
+        <div class="budget-line invest"><span class="blabel">Real estate fund</span><span class="bval">${fm(A.re_mo)}</span></div>
+        <div class="budget-line subtotal invest"><span class="blabel">Total invested</span><span class="bval">${fm(c.mo_inv)}</span></div>
+        <div class="budget-line total"><span class="blabel">Free cash flow (buffer)</span><span class="bval">${fm(c.mo_free)}</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="border-color:rgba(227,179,65,.2)">
+        <div class="section-label" style="color:var(--amber)">Tax refund — April only</div>
+        <div class="budget-line amber-line"><span class="blabel">Annual RRSP contribution</span><span class="bval">${fm(c.yr_rrsp)}</span></div>
+        <div class="budget-line amber-line"><span class="blabel">Quebec tax rate</span><span class="bval">${A.tax_rate}%</span></div>
+        <div class="budget-line amber-line" style="background:var(--amber-bg);border-radius:var(--radius)">
+          <span class="blabel" style="font-weight:600;color:var(--amber)">Estimated refund</span>
+          <span class="bval" style="color:var(--amber);font-size:18px">${fm(c.refund)}</span>
+        </div>
+        <div class="info-box">File before April 30 → refund in 2–4 weeks → transfer 100% to RE fund immediately.</div>
+      </div>
+      <div class="card">
+        <div class="section-label">Annual capital summary</div>
+        <div class="three-col" style="margin-bottom:12px">
+          <div class="mini-stat"><div class="ms-label">From savings</div><div class="ms-value" style="color:var(--blue)">${fm(c.yr_inv)}</div></div>
+          <div class="mini-stat"><div class="ms-label">Tax refund</div><div class="ms-value" style="color:var(--amber)">${fm(c.refund)}</div></div>
+          <div class="mini-stat"><div class="ms-label">Total/year</div><div class="ms-value" style="color:var(--green)">${fm(c.yr_total)}</div></div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-meta"><span class="prog-label">Housing cost ratio</span><span style="color:var(--green);font-weight:600">${fpc(c.house)}</span></div>
+          <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(100,c.house*100)}%;background:var(--green)"></div></div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-meta"><span class="prog-label">Savings rate</span><span style="color:var(--green);font-weight:600">${fpc(c.sav)}</span></div>
+          <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(100,c.sav*100)}%;background:var(--green)"></div></div>
+        </div>
+        <div class="info-box">Year 2 cumulative: <strong>${fm(c.yr_total*2)}</strong> — enough for ${A.prop1_dp}% down on a ${fm(A.prop1_price)} duplex.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCapital(){
+  const c=C();
+  let rows='',cum=0;
+  for(let i=0;i<24;i++){
+    const yr=i<12?1:2,mo=i%12,isApr=mo===3,ref=isApr?c.refund:0,tot=c.mo_inv+ref;
+    cum+=tot;
+    rows+=`<tr class="${isApr?'april-tr':''}">
+      <td>${MONTHS[mo]}<span style="color:var(--text3);font-size:11px;margin-left:6px">Yr ${yr}</span></td>
+      <td>${fm(A.rrsp_mo)}</td><td>${fm(A.tfsa_mo)}</td><td>${fm(A.re_mo)}</td>
+      <td style="font-weight:600">${fm(tot)}</td>
+      <td class="${isApr?'re-td':''}">${isApr?fm(ref):'—'}</td>
+      <td class="cum-td">${fm(cum)}</td>
+    </tr>`;
+  }
+  const dp10=A.prop1_price*(A.prop1_dp/100),dp5=A.prop1_price*0.05,cum2=c.yr_total*2;
+  document.getElementById('panel-capital').innerHTML=`
+  <div class="card">
+    <div class="card-header">
+      <div><div class="card-title">24-month capital accumulation</div><div class="card-sub">Tax refund appears once in April each year — not monthly</div></div>
+      <span class="badge badge-amber">Refund in April only</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th style="text-align:left">Month</th><th>RRSP</th><th>TFSA</th><th>RE Fund</th><th>Monthly</th><th>Tax Refund</th><th>Cumulative</th></tr></thead>
+        <tbody>${rows}
+          <tr class="tfoot-row"><td>2-year total</td><td>${fm(A.rrsp_mo*24)}</td><td>${fm(A.tfsa_mo*24)}</td><td>${fm(A.re_mo*24)}</td><td>${fm(c.mo_inv*24)}</td><td>${fm(c.refund*2)}</td><td class="cum-td">${fm(cum)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">Down payment readiness — end of Year 2</div>
+    <div class="mini-grid">
+      <div class="mini-stat" style="border-color:rgba(63,185,80,.3)"><div class="ms-label">Capital saved</div><div class="ms-value" style="color:var(--green)">${fm(cum2)}</div><div class="ms-sub">After 24 months</div></div>
+      <div class="mini-stat"><div class="ms-label">10% down needed</div><div class="ms-value" style="color:var(--blue)">${fm(dp10)}</div><div class="ms-sub">On ${fm(A.prop1_price)}</div></div>
+      <div class="mini-stat" style="border-color:rgba(63,185,80,.3)"><div class="ms-label">Surplus at 10%</div><div class="ms-value" style="color:var(--green)">${fm(cum2-dp10)}</div><div class="ms-sub">Buffer</div></div>
+      <div class="mini-stat"><div class="ms-label">5% down alternative</div><div class="ms-value">${fm(dp5)}</div><div class="ms-sub">Minimum</div></div>
+    </div>
+    <div class="info-box" style="margin-top:12px">Target markets: <strong>Sherbrooke, Trois-Rivières, Saguenay</strong> — Quebec cities where duplex rental income covers 70–90% of the mortgage.</div>
+  </div>`;
+}
+
+let projChart=null;
+function renderProjection(){
+  const c=C(),ret=A.port_return/100,reg=A.re_growth/100,ann=(A.rrsp_mo+A.tfsa_mo)*12;
+  const yrs=Array.from({length:9},(_,i)=>2025+i);
+  const port=yrs.map((_,i)=>{let fv=0;for(let y=0;y<=i;y++)fv=(fv+ann)*(1+ret);return Math.round(fv);});
+  const re=yrs.map((_,i)=>{
+    const yr=i+1; if(yr<2)return 0;
+    const y1=yr-2,v1=Math.round(A.prop1_price*Math.pow(1+reg,y1)),m1=Math.max(0,A.prop1_price*(1-A.prop1_dp/100)-12000*y1);
+    let eq=Math.max(0,v1-m1);
+    if(yr>=5){const y2=yr-5,v2=Math.round(A.prop2_price*Math.pow(1+reg,y2)),m2=Math.max(0,A.prop2_price*(1-A.prop2_dp/100)-12000*y2);eq+=Math.max(0,v2-m2);}
+    return eq;
+  });
+  const cash=yrs.map((_,i)=>i>=1?20000:5000);
+  const nw=yrs.map((_,i)=>port[i]+re[i]+cash[i]);
+  const milestones={2:'🏠 Buy duplex',5:'🔄 Refinance',8:'🎯 ~$620K NW'};
+  let trows='';
+  for(let i=0;i<9;i++){
+    const yr=i+1,mc=milestones[yr]?'proj-milestone':'';
+    trows+=`<tr class="${mc}"><td>${yrs[i]}</td><td class="port-td">${fm(port[i])}</td><td class="re-td">${yr>=2?fm(re[i]):'—'}</td><td>${fm(cash[i])}</td><td class="nw-td">${fm(nw[i])}</td><td style="font-size:11px;color:var(--amber)">${milestones[yr]||''}</td></tr>`;
+  }
+  document.getElementById('panel-projection').innerHTML=`
+  <div class="three-col" style="margin-bottom:16px">
+    <div class="mini-stat" style="text-align:center;padding:18px"><div class="ms-label">Portfolio Yr 8</div><div class="ms-value" style="color:var(--blue);font-size:22px">${fm(port[7])}</div></div>
+    <div class="mini-stat" style="text-align:center;padding:18px"><div class="ms-label">RE equity Yr 8</div><div class="ms-value" style="color:var(--amber);font-size:22px">${fm(re[7])}</div></div>
+    <div class="mini-stat" style="text-align:center;padding:18px;border-color:rgba(63,185,80,.3)"><div class="ms-label">Net worth Yr 8</div><div class="ms-value" style="color:var(--green);font-size:22px">${fm(nw[7])}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">Net worth trajectory 2025–2033</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:rgba(88,166,255,.7)"></span>RRSP + TFSA</span>
+      <span><span class="ldot" style="background:rgba(227,179,65,.7)"></span>Real estate equity</span>
+      <span><span class="ldot" style="background:var(--green)"></span>Total net worth</span>
+    </div>
+    <div class="chart-wrap"><canvas id="projCanvas"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">Year-by-year breakdown</div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th style="text-align:left">Year</th><th>Portfolio</th><th>RE Equity</th><th>Cash</th><th>Net Worth</th><th>Milestone</th></tr></thead>
+        <tbody>${trows}</tbody>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top:12px">${A.port_return}% portfolio return · ${A.re_growth}% RE appreciation · Prop 1 @ ${fm(A.prop1_price)} yr 2 · Prop 2 @ ${fm(A.prop2_price)} yr 5–6 · ~$12K/yr mortgage paydown</div>
+  </div>`;
+  setTimeout(()=>{
+    if(projChart)projChart.destroy();
+    projChart=new Chart(document.getElementById('projCanvas'),{
+      type:'bar',
+      data:{labels:yrs,datasets:[
+        {label:'RRSP+TFSA',data:port,backgroundColor:'rgba(88,166,255,.65)',stack:'s'},
+        {label:'RE Equity',data:re,backgroundColor:'rgba(227,179,65,.65)',stack:'s'},
+        {label:'Net worth',data:nw,type:'line',borderColor:'#3FB950',backgroundColor:'rgba(63,185,80,.06)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#3FB950',borderWidth:2.5,yAxisID:'y'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C2128',borderColor:'rgba(255,255,255,.1)',borderWidth:1,callbacks:{label:c=>`${c.dataset.label}: $${Math.round(c.raw).toLocaleString()}`}}},
+        scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:11}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:11,family:'DM Mono'},callback:v=>'$'+Math.round(v/1000)+'K'}}}}
+    });
+  },80);
+}
+
+function renderHowto(){
+  const c=C();
+  document.getElementById('panel-howto').innerHTML=`
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="section-label">Quick start guide</div>
+        ${[
+          ['1','Set your assumptions','Go to Assumptions tab. Change any blue field. Every tab updates instantly.'],
+          ['2','Set up 3 auto-transfers','Schedule automatic transfers on the 1st of each month: RRSP, TFSA, and RE fund. Automate it — remove willpower.'],
+          ['3','Monthly 2-minute check-in','Open Monthly Tracker. Enter what was actually transferred. Check off each box.'],
+          ['Apr','Tax refund — reinvest immediately','File Quebec taxes before April 30. When ${fm(c.refund)} arrives (2–4 weeks), transfer 100% to RE fund. Enter in April refund field.'],
+          ['Yr 2','Buy the duplex','You\'ll have ~${fm(c.yr_total*2)} saved. Buy a $500K duplex in Sherbrooke or Trois-Rivières. 10% down. Rental covers most of mortgage.'],
+          ['Always','Never stop investing','Keep RRSP + TFSA running after buying. This is the single most important rule.'],
+        ].map(([n,t,d])=>`<div class="step"><div class="step-num" style="font-size:${n.length>2?'9':'11'}px">${n}</div><div><div class="step-title">${t}</div><div class="step-desc">${d}</div></div></div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="section-label">The 4 wealth multipliers</div>
+        ${[
+          ['📈','High savings rate','border-left-color:var(--green)','59%+ invested. Most Canadians save 5–10%. You are 6× above average. This is the foundation.'],
+          ['🧾','RRSP tax deductions','border-left-color:var(--amber)','Reduces taxable income → the government sends you free capital every April. Never skip an RRSP contribution.'],
+          ['🏠','Real estate leverage','border-left-color:var(--blue)','Control a $500K asset with $50K. No other legal investment gives you 10× leverage with stable returns.'],
+          ['📊','Compound growth','border-left-color:var(--purp)','RRSP + TFSA at 7% doubles every ~10 years. Start early, add consistently, never withdraw.'],
+        ].map(([ic,t,st,d])=>`<div class="multiplier" style="${st}"><div class="mult-icon">${ic}</div><div><div class="mult-title">${t}</div><div class="mult-desc">${d}</div></div></div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-label">Non-negotiable habits</div>
+        ${[
+          ['Auto-transfer RRSP on 1st of month','var(--blue)'],
+          ['Auto-transfer TFSA on 1st of month','var(--green)'],
+          ['Auto-transfer RE fund on 1st of month','var(--amber)'],
+          ['File Quebec taxes before April 30','var(--amber)'],
+          ['Reinvest 100% of tax refund → RE fund (April)','var(--amber)'],
+          ['Keep investing after buying property','var(--green)'],
+          ['Increase income over time — raises, side income','var(--purp)'],
+        ].map(([t,col])=>`<div class="ci"><div class="ci-dot" style="background:${col}"></div><span>${t}</span></div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-label">8-year milestone timeline</div>
+        ${[
+          ['2025','Year 1','Automate $2,400/month. Never miss a transfer.','var(--blue)'],
+          ['2026–27','Year 2',`~${fm(c.yr_total*2)} saved → buy duplex, 10% down.`,'var(--blue)'],
+          ['2028–30','Years 3–5','Keep investing monthly. Property appreciating + mortgage decreasing.','var(--text3)'],
+          ['2030–31','Year 5–6','Equity ~$150K → refinance → fund Property 2.','var(--amber)'],
+          ['2033','Year 8',`Net worth ~${fm(nw=>0)} target. Path to $1M if stronger appreciation.`,'var(--green)'],
+        ].map(([yr,lbl,d,col])=>`<div class="tl-item"><div class="tl-yr" style="color:${col}">${yr}</div><div class="tl-content"><div class="tl-title">${lbl}</div><div class="tl-desc">${d}</div></div></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+load(); renderKPI(); renderAssumptions();
+
+// ── Credit Score Tab ─────────────────────────────────────────────────
+let CR = [];
+
+function loadCR(){
+  try { const d=localStorage.getItem('wb3_cr'); if(d) CR=JSON.parse(d); } catch(e){}
+  // Seed with known data if empty
+  if(CR.length===0){
+    CR=[
+      {date:'2025-02',label:'February 2025',eq:681, tu:692, note:'First read — TransUnion 692, Equifax 681'},
+    ];
+    saveCR();
+  }
+}
+function saveCR(){ try{localStorage.setItem('wb3_cr',JSON.stringify(CR));}catch(e){} }
+
+function scoreBand(s){
+  if(s>=800) return {label:'Exceptional',color:'#3FB950',bg:'rgba(63,185,80,.12)'};
+  if(s>=740) return {label:'Very Good',  color:'#58A6FF',bg:'rgba(88,166,255,.12)'};
+  if(s>=670) return {label:'Good',       color:'#E3B341',bg:'rgba(227,179,65,.12)'};
+  if(s>=580) return {label:'Fair',       color:'#F0883E',bg:'rgba(240,136,62,.12)'};
+  return               {label:'Poor',       color:'#F85149',bg:'rgba(248,81,73,.12)'};
+}
+
+function gaugeArc(score, color){
+  const min=300,max=900,pct=(score-min)/(max-min);
+  const r=50, cx=60, cy=60;
+  const startA=-Math.PI, endA=0;
+  const angle=startA+(endA-startA)*pct;
+  const x=cx+r*Math.cos(angle), y=cy+r*Math.sin(angle);
+  const bgPath=`M ${cx-r},${cy} A ${r},${r} 0 0,1 ${cx+r},${cy}`;
+  const fillPath=pct>0?`M ${cx-r},${cy} A ${r},${r} 0 0,1 ${x},${y}`:'';
+  return `<svg viewBox="0 0 120 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="${bgPath}" stroke="rgba(255,255,255,.07)" stroke-width="10" fill="none" stroke-linecap="round"/>
+    ${fillPath?`<path d="${fillPath}" stroke="${color}" stroke-width="10" fill="none" stroke-linecap="round"/>`:''}
+    <circle cx="${x}" cy="${y}" r="5" fill="${color}"/>
+  </svg>`;
+}
+
+function ccCalendarHTML(score){
+  const today = new Date();
+  const todayMonth = today.getMonth(); // 0-indexed
+  const todayYear  = today.getFullYear();
+
+  // Generate 6 months (2 past + current + 3 future)
+  const months = [];
+  for(let i=-2; i<=3; i++){
+    let m = todayMonth + i;
+    let y = todayYear;
+    while(m < 0){ m+=12; y--; }
+    while(m > 11){ m-=12; y++; }
+    months.push({m, y});
+  }
+
+  const MNAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Score-based advice
+  const scoreColor = score >= 750 ? 'var(--green)' : score >= 700 ? 'var(--amber)' : 'var(--text3)';
+  const payTarget = score >= 750 ? '$0' : '$50–75';
+  const optimalPay = score >= 750 ? 'zero' : 'under $75 (3%)';
+
+  // Strategy action box
+  const actionBox = `
+  <div class="cc-action-box">
+    <div class="cc-action-title">🎯 Your Monthly $2,500 Card Strategy
+      <span class="badge" style="background:${score>=750?'var(--green-bg)':'var(--amber-bg)'};color:${scoreColor};font-size:10px">${score>=750?'Unlocked best rates':'Building to 750'}</span>
+    </div>
+    <div class="cc-action-steps">
+      <div class="cc-step"><div class="cc-step-num">1</div><div class="cc-step-txt"><strong>Day 1–15:</strong> Use card normally — put phone ($50), gym ($50), internet ($50) on it. That's your $150/mo in useful spend.</div></div>
+      <div class="cc-step"><div class="cc-step-num">2</div><div class="cc-step-txt"><strong>Around the 15th:</strong> Log in and pay the full balance down to ${payTarget}. Statement closes ~20th — bureaus see ${optimalPay} balance. This is the #1 score move.</div></div>
+      <div class="cc-step"><div class="cc-step-num">3</div><div class="cc-step-txt"><strong>20th (Statement close):</strong> Statement generated. Balance reported to Equifax &amp; TransUnion = ${payTarget}. Score impact locks in.</div></div>
+      <div class="cc-step"><div class="cc-step-num">4</div><div class="cc-step-txt"><strong>24–27th:</strong> Paper statement arrives in the mail. Confirm everything looks right. No surprises.</div></div>
+      <div class="cc-step"><div class="cc-step-num">5</div><div class="cc-step-txt"><strong>Due date (13th next month):</strong> Any remaining balance auto-paid or manually paid. Never pay late — even $1 late = late mark on your file.</div></div>
+    </div>
+    <div class="info-box" style="margin-top:12px;border-color:rgba(227,179,65,.2)">
+      <strong>Why pay BEFORE the 20th, not the 13th?</strong><br>
+      Bureaus don't see your due date payment — they see your <em>statement balance</em> (the snapshot on the 20th).
+      If you carry $800 until the 13th due date and pay it then, the bureau already reported $800 on the 20th.
+      Pay BEFORE the 20th → bureau sees $0–$75 → maximum score impact.
+    </div>
+  </div>`;
+
+  // Monthly calendar blocks
+  const blocks = months.map(({m, y})=>{
+    const isCur = m===todayMonth && y===todayYear;
+    const isPast= y<todayYear || (y===todayYear && m<todayMonth);
+    const cls = isCur?'current-mo':isPast?'past-mo':'future-mo';
+    const badge = isCur?`<span class="badge badge-blue" style="font-size:10px">This month</span>`:
+                  isPast?`<span class="badge badge-green" style="font-size:10px">Done</span>`:
+                  `<span class="badge badge-gray" style="font-size:10px">Upcoming</span>`;
+
+    // Due date is 13th of THIS month (payment for prev month's statement)
+    // Statement closes ~20th of THIS month
+    // Card arrives 24–27th THIS month
+
+    return `<div class="cc-month-block ${cls}">
+      <div class="cc-month-name">${MNAMES[m]} ${y} ${badge}</div>
+      <div class="cc-timeline">
+        <div class="cc-event">
+          <span class="cc-date-badge" style="background:var(--red-bg);color:var(--red)">13</span>
+          <div class="cc-ev-label"><strong>Payment due</strong> — last month's statement<span class="tip">Pay in full. Never be late. Set auto-pay as backup.</span></div>
+        </div>
+        <div class="cc-event">
+          <span class="cc-date-badge" style="background:var(--blue-bg);color:var(--blue)">~15</span>
+          <div class="cc-ev-label"><em>⚡ Action:</em> <strong>Pay balance down to $0–$75</strong> before statement<span class="tip">Do this BEFORE the 20th — bureaus see statement balance, not due-date balance</span></div>
+        </div>
+        <div class="cc-event">
+          <span class="cc-date-badge" style="background:var(--purp-bg);color:var(--purp)">~20</span>
+          <div class="cc-ev-label"><strong>Statement closes</strong> — balance reported to bureaus<span class="tip">Balance on this date = what Equifax &amp; TransUnion score. Target: $0–$75 (0–3%)</span></div>
+        </div>
+        <div class="cc-event">
+          <span class="cc-date-badge" style="background:var(--amber-bg);color:var(--amber)">24–27</span>
+          <div class="cc-ev-label"><strong>Paper statement arrives</strong> by mail<span class="tip">Review for errors. Dispute anything unfamiliar — fraud protection</span></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Unlock milestones
+  const unlocks = [
+    {score:700,label:'LOC eligibility',desc:'Unsecured personal line of credit at prime+2–3% for emergencies',color:'var(--amber)'},
+    {score:720,label:'Premium CC upgrade',desc:'Eligible for travel rewards cards (Scotiabank Passport, TD Aeroplan)',color:'var(--blue)'},
+    {score:750,label:'Best mortgage rate',desc:'Access to best 5-yr fixed rates. Could save $80–150/mo vs. 700 score',color:'var(--green)'},
+    {score:760,label:'HELOC access',desc:'Home Equity Line of Credit at prime+0.5% — your real estate leverage tool',color:'var(--green)'},
+    {score:800,label:'Exceptional tier',desc:'Best rates on everything. Banks compete for you. LOC at prime flat.',color:'var(--purp)'},
+  ];
+
+  const unlockHTML = unlocks.map(u=>{
+    const avg = Math.round((score + (score===681?692:681))/2); // approximate avg
+    const reached = score >= u.score;
+    return `<div class="advice-item" style="border-left-color:${reached?u.color:'var(--text3)'}; opacity:${reached?1:0.6}">
+      <div class="adv-icon">${reached?'✅':'🔒'}</div>
+      <div>
+        <div class="adv-title" style="color:${reached?u.color:'var(--text2)'}">${u.score}+ — ${u.label}</div>
+        <div class="adv-desc">${u.desc}</div>
+        ${reached?`<span class="adv-tag" style="background:var(--green-bg);color:var(--green)">Unlocked</span>`:`<span class="adv-tag" style="background:var(--bg4);color:var(--text3)">+${u.score-score} pts to go</span>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  ${actionBox}
+  <div class="cc-cycle-grid">${blocks}</div>
+  <div class="section-label" style="margin-top:4px">Score milestones — products &amp; rates you unlock</div>
+  <div class="advice-grid">${unlockHTML}</div>`;
+}
+
+function renderCredit(){
+  loadCR();
+  const panel = document.getElementById('panel-credit');
+
+  const latest = CR[CR.length-1] || {eq:681,tu:691};
+  const prev   = CR[CR.length-2] || null;
+  const avgNow = Math.round((latest.eq+latest.tu)/2);
+  const avgPrev= prev ? Math.round((prev.eq+prev.tu)/2) : null;
+  const eqBand = scoreBand(latest.eq);
+  const tuBand = scoreBand(latest.tu);
+
+  function deltaHTML(now, before){
+    if(!before) return '';
+    const d=now-before;
+    if(d>0) return `<span class="score-delta up">▲ +${d} pts</span>`;
+    if(d<0) return `<span class="score-delta down">▼ ${d} pts</span>`;
+    return `<span class="score-delta flat">→ No change</span>`;
+  }
+
+  // History rows
+  const rows = [...CR].reverse().map((r,i,arr)=>{
+    const prevR = arr[i+1];
+    function dCell(now,bef){
+      if(!bef) return '<td class="delta-flat">—</td>';
+      const d=now-bef;
+      if(d>0) return `<td class="delta-up">▲ +${d}</td>`;
+      if(d<0) return `<td class="delta-down">▼ ${d}</td>`;
+      return '<td class="delta-flat">→</td>';
+    }
+    const origIdx = CR.length-1-i;
+    return `<tr>
+      <td>${r.label}</td>
+      <td style="color:var(--blue);font-weight:600">${r.eq}</td>
+      ${dCell(r.eq, prevR?.eq)}
+      <td style="color:var(--purp);font-weight:600">${r.tu}</td>
+      ${dCell(r.tu, prevR?.tu)}
+      <td style="color:var(--text3)">${r.note||'—'}</td>
+      <td><button class="del-btn" onclick="delCR(${origIdx})">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  // Credit score milestone positions (300–900 scale)
+  const milestones=[
+    {score:580,label:'Fair'},
+    {score:670,label:'Good'},
+    {score:740,label:'V.Good'},
+    {score:800,label:'Excel.'},
+    {score:850,label:'Target'},
+  ];
+  const scaleMin=580, scaleMax=880;
+  const avgScore=avgNow;
+  const fillPct=Math.min(100,Math.max(0,(avgScore-scaleMin)/(scaleMax-scaleMin)*100));
+
+  // Utilization: real Desjardins card — $2,300 limit, current balance from statement
+  const limit=2300;
+  const crBalance=parseFloat(localStorage.getItem('wb4_ccbal')||'1764.18');
+  const crPayment=parseFloat(localStorage.getItem('wb4_ccpay')||'500');
+  const balance=crBalance;
+  const util=Math.round(balance/limit*100);
+  const utilColor=util<=10?'var(--green)':util<=30?'var(--amber)':'var(--red)';
+  const utilCirc=2*Math.PI*30;
+  const utilDash=utilCirc*(util/100);
+
+  // Paydown milestone dates
+  function paydownDate(targetBal, startBal, monthlyNet, rate) {
+    // monthlyNet = net payment after interest
+    const monthlyRate = rate/12/100;
+    let bal = startBal;
+    let months = 0;
+    while(bal > targetBal && months < 120) {
+      bal = bal*(1+monthlyRate) - monthlyNet;
+      if(bal < 0) bal = 0;
+      months++;
+    }
+    return months;
+  }
+  const annualRate = 20.90;
+  const mo30 = paydownDate(limit*0.30, balance, crPayment, annualRate);
+  const mo10 = paydownDate(limit*0.10, balance, crPayment, annualRate);
+  const mo0  = paydownDate(0, balance, crPayment, annualRate);
+
+  function addMonths(m) {
+    const d = new Date(2026, 2, 1); // March 2026 as start
+    d.setMonth(d.getMonth()+m);
+    return d.toLocaleDateString('en-CA',{month:'long',year:'numeric'});
+  }
+  const date30 = mo30===0?'Already below 30%':addMonths(mo30);
+  const date10 = mo10===0?'Already below 10%':addMonths(mo10);
+  const date0  = addMonths(mo0);
+
+  // Projected balance at each milestone month
+  function projBal(months, startBal, monthlyNet, rate) {
+    const monthlyRate = rate/12/100;
+    let bal = startBal;
+    for(let i=0;i<months;i++){bal=Math.max(0,bal*(1+monthlyRate)-monthlyNet);}
+    return Math.round(bal);
+  }
+  // Build monthly paydown table (up to payoff or 24 months)
+  function buildPaydownRows() {
+    const mr=annualRate/12/100;
+    let bal=balance, rows='';
+    const maxMo=Math.min(mo0+1,24);
+    for(let i=1;i<=maxMo;i++){
+      const interest=bal*mr;
+      const principal=Math.min(crPayment-interest,bal);
+      bal=Math.max(0,bal-principal);
+      const util_=Math.round(bal/limit*100);
+      const utilCls=util_<=10?'delta-up':util_<=30?'delta-flat':'delta-down';
+      const milestone=bal<=limit*0.10&&projBal(i-1,balance,crPayment,annualRate)>limit*0.10?'🎯 10%':
+                       bal<=limit*0.30&&projBal(i-1,balance,crPayment,annualRate)>limit*0.30?'⭐ 30%':
+                       bal===0?'✅ PAID':'';
+      rows+=`<tr ${milestone?'style="background:rgba(63,185,80,.05)"':''}>
+        <td>${addMonths(i)}</td>
+        <td style="color:var(--red);font-weight:600">$${bal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="${utilCls}">${util_}%</td>
+        <td style="color:var(--text3)">$${interest.toFixed(2)}</td>
+        <td style="color:var(--green)">$${Math.max(0,principal).toFixed(2)}</td>
+        <td style="font-size:12px;color:var(--amber)">${milestone}</td>
+      </tr>`;
+      if(bal===0) break;
+    }
+    return rows;
+  }
+
+  panel.innerHTML=`
+  <!-- Score hero cards -->
+  <div class="score-hero">
+    <div class="score-card eq">
+      <div class="score-bureau">Equifax</div>
+      <div class="gauge-wrap">${gaugeArc(latest.eq,'#58A6FF')}</div>
+      <div class="score-num">${latest.eq}</div>
+      <div class="score-band" style="background:${eqBand.bg};color:${eqBand.color}">${eqBand.label}</div>
+      ${deltaHTML(latest.eq, prev?.eq)}
+      <div class="score-goal">Target: 750+ for best rates</div>
+    </div>
+    <div class="score-card tu">
+      <div class="score-bureau">TransUnion</div>
+      <div class="gauge-wrap">${gaugeArc(latest.tu,'#BC8CFF')}</div>
+      <div class="score-num">${latest.tu}</div>
+      <div class="score-band" style="background:${tuBand.bg};color:${tuBand.color}">${tuBand.label}</div>
+      ${deltaHTML(latest.tu, prev?.tu)}
+      <div class="score-goal">Target: 750+ for best rates</div>
+    </div>
+  </div>
+
+  <!-- Progress to 750 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:16px">Progress to 750 — Real Estate Leverage Goal</div>
+    <div class="milestone-track">
+      <div class="milestone-bar">
+        <div class="milestone-fill" style="width:${fillPct}%"></div>
+      </div>
+      <div class="milestone-pins" style="position:relative;margin-top:10px">
+        ${milestones.map(m=>{
+          const pos=((m.score-scaleMin)/(scaleMax-scaleMin)*100);
+          const reached=avgScore>=m.score;
+          return `<div class="mpin ${reached?'reached':''}" style="position:absolute;left:${pos}%;transform:translateX(-50%)">
+            <span class="mp-score">${m.score}</span>
+            <span class="mp-label">${m.label}</span>
+          </div>`;
+        }).join('')}
+        <div style="height:32px"></div>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:6px">
+      Average score: <strong style="color:var(--blue)">${avgNow}</strong> ·
+      Gap to 750: <strong style="color:var(--amber)">${Math.max(0,750-avgNow)} pts</strong> ·
+      Estimated time at current pace: <strong style="color:var(--green)">~${Math.ceil(Math.max(0,750-avgNow)/8)} months</strong> (avg 8 pts/mo if habits held)
+    </div>
+  </div>
+
+  <!-- Utilization -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div><div class="card-title">Credit Utilization — Desjardins Odyssée</div><div class="card-sub">Limit $2,300 · 20.90% APR · Statement date 20th · Due 13th</div></div>
+      <span class="badge ${util<=10?'badge-green':util<=30?'badge-amber':'badge-gray'}" style="${util>30?'background:var(--red-bg);color:var(--red)':''}">${util}% used</span>
+    </div>
+    <div class="util-ring">
+      <div class="util-circle">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="8"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="${utilColor}" stroke-width="8"
+            stroke-dasharray="${utilDash} ${utilCirc}" stroke-linecap="round"
+            transform="rotate(-90 36 36)" style="transition:stroke-dasharray .6s ease"/>
+        </svg>
+        <div class="util-pct" style="color:${utilColor}">${util}%</div>
+      </div>
+      <div class="util-info">
+        <div class="util-title">$${balance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} balance of $${limit.toLocaleString()} limit</div>
+        <div class="util-sub">
+          <strong style="color:var(--red)">High utilization — #1 score killer.</strong> Every % you drop here = direct score gain.<br>
+          <strong style="color:var(--green)">30% = $690</strong> (score jumps ~20–30 pts) ·
+          <strong style="color:var(--green)">10% = $230</strong> (score jumps ~40–60 pts)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paydown Milestone Tracker -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(248,81,73,.2)">
+    <div class="card-header">
+      <div>
+        <div class="card-title">🗓 Paydown Milestone Dates</div>
+        <div class="card-sub">Based on $${crPayment}/mo net payment · 20.90% APR · Starting March 2026</div>
+      </div>
+      <span class="badge badge-amber">Adjust below</span>
+    </div>
+
+    <!-- Editable inputs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div class="field-row" onclick="this.querySelector('input').focus()" style="margin-bottom:0">
+        <div class="field-left">
+          <div class="field-label">Current balance</div>
+          <div class="field-note">From your last statement</div>
+        </div>
+        <div class="field-right">
+          <span class="field-prefix">$</span>
+          <input class="field-input" type="number" min="0" step="0.01" value="${crBalance}"
+            oninput="localStorage.setItem('wb4_ccbal',this.value);renderCredit()">
+        </div>
+      </div>
+      <div class="field-row" onclick="this.querySelector('input').focus()" style="margin-bottom:0">
+        <div class="field-left">
+          <div class="field-label">Monthly payment</div>
+          <div class="field-note">Net amount paid toward card</div>
+        </div>
+        <div class="field-right">
+          <span class="field-prefix">$</span>
+          <input class="field-input" type="number" min="103" step="50" value="${crPayment}"
+            oninput="localStorage.setItem('wb4_ccpay',this.value);renderCredit()">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 milestone cards -->
+    <div class="three-col" style="margin-bottom:20px">
+      <div class="mini-stat" style="border-color:rgba(227,179,65,.4);text-align:center">
+        <div class="ms-label" style="color:var(--amber)">⭐ Below 30%</div>
+        <div class="ms-value" style="color:var(--amber);font-size:16px">$690</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin:6px 0">${date30}</div>
+        <div class="ms-sub">~${mo30} month${mo30===1?'':'s'} from now</div>
+        <div class="ms-sub" style="margin-top:3px">Score boost: ~20–30 pts</div>
+      </div>
+      <div class="mini-stat" style="border-color:rgba(88,166,255,.4);text-align:center">
+        <div class="ms-label" style="color:var(--blue)">🎯 Below 10%</div>
+        <div class="ms-value" style="color:var(--blue);font-size:16px">$230</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin:6px 0">${date10}</div>
+        <div class="ms-sub">~${mo10} month${mo10===1?'':'s'} from now</div>
+        <div class="ms-sub" style="margin-top:3px">Score boost: ~40–60 pts</div>
+      </div>
+      <div class="mini-stat" style="border-color:rgba(63,185,80,.4);text-align:center">
+        <div class="ms-label" style="color:var(--green)">✅ Paid in Full</div>
+        <div class="ms-value" style="color:var(--green);font-size:16px">$0</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin:6px 0">${date0}</div>
+        <div class="ms-sub">~${mo0} month${mo0===1?'':'s'} from now</div>
+        <div class="ms-sub" style="margin-top:3px">Score boost: ~60–80 pts</div>
+      </div>
+    </div>
+
+    <!-- Visual progress bar -->
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px">
+        <span>Current: $${balance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+        <span style="color:var(--amber)">30% = $690</span>
+        <span style="color:var(--blue)">10% = $230</span>
+        <span style="color:var(--green)">$0</span>
+      </div>
+      <div style="height:10px;background:var(--bg4);border-radius:5px;position:relative;overflow:visible">
+        <div style="height:10px;border-radius:5px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));width:${util}%;transition:width .6s ease"></div>
+        <!-- 30% marker -->
+        <div style="position:absolute;top:-4px;left:30%;width:2px;height:18px;background:var(--amber);opacity:.8"></div>
+        <!-- 10% marker -->
+        <div style="position:absolute;top:-4px;left:10%;width:2px;height:18px;background:var(--blue);opacity:.8"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">
+        Total interest cost at $${crPayment}/mo: <strong style="color:var(--red)">$${(crPayment*mo0-balance).toFixed(0)}</strong> over ${mo0} months
+      </div>
+    </div>
+
+    <!-- Monthly paydown table -->
+    <div class="card-title" style="margin-bottom:10px;font-size:13px">Month-by-month breakdown</div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Month</th>
+          <th>Balance</th>
+          <th>Utilization</th>
+          <th>Interest</th>
+          <th>Principal</th>
+          <th style="text-align:left">Milestone</th>
+        </tr></thead>
+        <tbody>${buildPaydownRows()}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Card strategy -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:14px">📋 Card Strategy — How to Use the Odyssée</div>
+    <div class="advice-grid">
+      <div class="advice-item" style="border-left-color:var(--red)">
+        <div class="adv-icon">🚫</div>
+        <div>
+          <div class="adv-title">Stop charging new purchases until below 30%</div>
+          <div class="adv-desc">At 77% utilization every new charge fights your paydown. Use debit/cash for daily spending until you hit $690.</div>
+          <div class="adv-tag" style="background:var(--red-bg);color:var(--red)">NOW</div>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--amber)">
+        <div class="adv-icon">⚡</div>
+        <div>
+          <div class="adv-title">Pay more than minimum — every dollar counts</div>
+          <div class="adv-desc">Min payment is $103 but 20.90% APR means $30+/month in interest. Pay $500+ to actually make progress.</div>
+          <div class="adv-tag" style="background:var(--amber-bg);color:var(--amber)">URGENT</div>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--blue)">
+        <div class="adv-icon">📅</div>
+        <div>
+          <div class="adv-title">Pay before the 20th — not the 13th</div>
+          <div class="adv-desc">Bureaus see your balance on statement date (20th). Pay down before the 20th each month to report a lower balance = better score immediately.</div>
+          <div class="adv-tag" style="background:var(--blue-bg);color:var(--blue)">SCORE TIP</div>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--green)">
+        <div class="adv-icon">🎯</div>
+        <div>
+          <div class="adv-title">Once at $0 — keep it that way</div>
+          <div class="adv-desc">Use the Odyssée only for groceries (3% back) and pay IN FULL before the 20th each month. Never carry a balance again. The card works for you, not against you.</div>
+          <div class="adv-tag" style="background:var(--green-bg);color:var(--green)">LONG TERM</div>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--purp)">
+        <div class="adv-icon">🛒</div>
+        <div>
+          <div class="adv-title">Optimal use: groceries + pay full</div>
+          <div class="adv-desc">Maxi, IGA, Costco = 3% BoniDollars. Put only predictable, budgeted groceries on it. Auto-pay full balance 5 days before statement date.</div>
+          <div class="adv-tag" style="background:var(--purp-bg);color:var(--purp)">AFTER PAYOFF</div>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--amber)">
+        <div class="adv-icon">⚠️</div>
+        <div>
+          <div class="adv-title">Avoid: Loto-Québec, Uber splurges, restaurants</div>
+          <div class="adv-desc">Feb statement shows $345 on Loto-QC + $350+ on Uber/food. These are exactly why the balance stays high. Cash or debit only for these.</div>
+          <div class="adv-tag" style="background:var(--amber-bg);color:var(--amber)">WATCH OUT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MINIMUM PAYMENT TRAP — with real numbers -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(248,81,73,.3)">
+    <div class="card-header">
+      <div>
+        <div class="card-title" style="color:var(--red)">⚠️ What Happens If You Only Pay $103 Minimum</div>
+        <div class="card-sub">Real math — your $1,764.18 balance · 20.90% APR</div>
+      </div>
+      <span class="badge" style="background:var(--red-bg);color:var(--red)">Trap</span>
+    </div>
+    <div class="three-col" style="margin-bottom:16px">
+      <div class="mini-stat" style="border-color:rgba(248,81,73,.4);text-align:center">
+        <div class="ms-label" style="color:var(--red)">Time to pay off</div>
+        <div class="ms-value" style="color:var(--red);font-size:22px">7 yrs 9 mo</div>
+        <div class="ms-sub">As stated on your bill</div>
+        <div class="ms-sub" style="margin-top:3px">Until ~Dec 2033</div>
+      </div>
+      <div class="mini-stat" style="border-color:rgba(248,81,73,.4);text-align:center">
+        <div class="ms-label" style="color:var(--red)">Total interest paid</div>
+        <div class="ms-value" style="color:var(--red);font-size:22px">~$1,480</div>
+        <div class="ms-sub">On a $1,764 balance</div>
+        <div class="ms-sub" style="margin-top:3px">You pay 84% extra</div>
+      </div>
+      <div class="mini-stat" style="border-color:rgba(248,81,73,.4);text-align:center">
+        <div class="ms-label" style="color:var(--red)">Total you'd pay</div>
+        <div class="ms-value" style="color:var(--red);font-size:22px">~$3,244</div>
+        <div class="ms-sub">For $1,764 of purchases</div>
+        <div class="ms-sub" style="margin-top:3px">$103 × ~93 payments</div>
+      </div>
+    </div>
+    <!-- Month by month minimum table — first 6 months -->
+    <div class="card-title" style="font-size:12px;margin-bottom:8px;color:var(--text2)">First 6 months paying only $103 minimum:</div>
+    <div class="table-scroll" style="margin-bottom:14px">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Month</th>
+          <th>Balance start</th>
+          <th>Interest charged</th>
+          <th>Min payment</th>
+          <th>Principal paid</th>
+          <th>Balance end</th>
+          <th>Progress</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>March 2026</td><td>$1,764.18</td><td style="color:var(--red)">$30.70</td><td>$103.00</td><td style="color:var(--green)">$72.30</td><td style="color:var(--red);font-weight:600">$1,691.88</td><td style="color:var(--text3)">−$72 in 30 days</td></tr>
+          <tr><td>April 2026</td><td>$1,691.88</td><td style="color:var(--red)">$29.43</td><td>$103.00</td><td style="color:var(--green)">$73.57</td><td style="color:var(--red);font-weight:600">$1,618.31</td><td style="color:var(--text3)">−$73 in 30 days</td></tr>
+          <tr><td>May 2026</td><td>$1,618.31</td><td style="color:var(--red)">$28.17</td><td>$103.00</td><td style="color:var(--green)">$74.83</td><td style="color:var(--red);font-weight:600">$1,543.48</td><td style="color:var(--text3)">−$75 in 30 days</td></tr>
+          <tr><td>June 2026</td><td>$1,543.48</td><td style="color:var(--red)">$26.88</td><td>$103.00</td><td style="color:var(--green)">$76.12</td><td style="color:var(--red);font-weight:600">$1,467.36</td><td style="color:var(--text3)">−$76 in 30 days</td></tr>
+          <tr><td>July 2026</td><td>$1,467.36</td><td style="color:var(--red)">$25.54</td><td>$103.00</td><td style="color:var(--green)">$77.46</td><td style="color:var(--red);font-weight:600">$1,389.90</td><td style="color:var(--text3)">−$77 in 30 days</td></tr>
+          <tr><td>Aug 2026</td><td>$1,389.90</td><td style="color:var(--red)">$24.19</td><td>$103.00</td><td style="color:var(--green)">$78.81</td><td style="color:var(--red);font-weight:600">$1,311.09</td><td style="color:var(--text3)">−$79 in 30 days</td></tr>
+          <tr style="background:var(--red-bg)"><td colspan="7" style="text-align:center;color:var(--red);font-size:12px;font-weight:600;padding:10px">After 6 months of minimum payments: still owe $1,311 · paid $618 · only $453 went to principal · $165 burned in interest 🔥</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box" style="border-color:rgba(248,81,73,.2);background:rgba(248,81,73,.04)">
+      <strong style="color:var(--red)">The minimum payment is designed to keep you in debt.</strong><br>
+      At $103/mo, $30 of your first payment is pure interest — money gone forever. You'd make 93 payments before the card is clear.
+      Meanwhile the bank collects <strong>$1,480 in interest</strong> on a balance you already spent.
+      This is not an accident — it is the product.
+    </div>
+  </div>
+
+  <!-- OUTLIER MINDSET -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(63,185,80,.25)">
+    <div class="card-header">
+      <div>
+        <div class="card-title" style="color:var(--green)">🧠 Why Your Approach Has to Be Different</div>
+        <div class="card-sub">The masses follow the path the bank designed. Outliers design their own.</div>
+      </div>
+      <span class="badge badge-green">Outlier mindset</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:16px">
+      <!-- What the masses do -->
+      <div style="padding:16px;background:rgba(248,81,73,.05);border-radius:var(--radius) 0 0 var(--radius);border:1px solid rgba(248,81,73,.15)">
+        <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">😴 What the masses do</div>
+        ${[
+          ['Pay minimum on due date (13th)','Bank reports high balance all month — score stays low'],
+          ['Treat credit limit as spending budget','Card stays maxed, utilization 80–100% forever'],
+          ['Miss a payment when cash is tight','Late payment = −50 to −100 pts, stays 7 years'],
+          ['Use card for impulse buys','Loto-QC, Uber, restaurants — balance never drops'],
+          ['Carry balance for years','Pay $3,244 for $1,764 of purchases. 84% tax on spending'],
+          ['Apply for more credit when maxed','Multiple hard inquiries + more debt = worse score'],
+        ].map(([a,b])=>`
+        <div style="margin-bottom:10px;padding:10px 12px;background:rgba(248,81,73,.06);border-radius:8px;border-left:2px solid var(--red)">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">✗ ${a}</div>
+          <div style="font-size:11px;color:var(--text3)">${b}</div>
+        </div>`).join('')}
+      </div>
+      <!-- What you do -->
+      <div style="padding:16px;background:rgba(63,185,80,.05);border-radius:0 var(--radius) var(--radius) 0;border:1px solid rgba(63,185,80,.15);border-left:none">
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">⚡ What you do (outlier)</div>
+        ${[
+          ['Pay in full BEFORE the 20th (statement date)','Bureau sees $0 balance reported → utilization 0% → max score'],
+          ['Use card as a tool, not a bank','Charge only budgeted groceries. The card earns YOU money (3% back)'],
+          ['Never carry a balance','$0 interest. $0 penalty. $0 wasted. Every dollar stays working'],
+          ['Pay on Mar 30 — before statement closes Apr 20','April statement reports $0 → score jumps the following month'],
+          ['Card becomes a score builder','0% utilization + on-time history + age of account = 750+ score'],
+          ['Use score to unlock leverage','750+ score → best mortgage rate → $500K duplex at lowest cost'],
+        ].map(([a,b])=>`
+        <div style="margin-bottom:10px;padding:10px 12px;background:rgba(63,185,80,.06);border-radius:8px;border-left:2px solid var(--green)">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">✓ ${a}</div>
+          <div style="font-size:11px;color:var(--text3)">${b}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="info-box" style="border-color:rgba(63,185,80,.2);background:rgba(63,185,80,.04)">
+      <strong style="color:var(--green)">The card is not the problem — the behavior is.</strong><br>
+      The Odyssée World Elite gives you 3% on groceries, travel insurance, extended warranty, and more.
+      Used correctly it is a <strong>free benefit machine</strong>. Used like the masses use it,
+      it costs you <strong>$1,480 in hidden interest</strong> and kills the credit score you need
+      to buy a $500K duplex. The same card. Two completely different outcomes. You choose which path every month.
+    </div>
+  </div>
+
+  <!-- MARCH 30 PAYOFF PLAN -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(88,166,255,.35);box-shadow:0 0 0 1px rgba(88,166,255,.1),0 4px 24px rgba(88,166,255,.06)">
+    <div class="card-header">
+      <div>
+        <div class="card-title" style="color:var(--blue)">🚀 March 30 Full Payoff Plan</div>
+        <div class="card-sub">Pay $1,764.18 in full by March 30, 2026 — here's the exact chain reaction</div>
+      </div>
+      <span class="badge badge-blue">17 days away</span>
+    </div>
+    <!-- Timeline -->
+    ${[
+      ['Mar 13','Due date','Pay at least $103 minimum to stay current — avoid any late mark','var(--text3)','⚪'],
+      ['Mar 20','Statement open period','Card is still charging — only use for planned groceries if needed','var(--text3)','⚪'],
+      ['Mar 30','🎯 PAY IN FULL','Transfer $1,764.18 (+ any new charges since Mar 13) to the card. Balance = $0.','var(--blue)','🔵'],
+      ['Apr 20','Statement closes','Desjardins reports $0 balance to Equifax + TransUnion. Utilization drops from 77% → 0%','var(--green)','🟢'],
+      ['Apr 27–May 10','Score updates','Both bureaus refresh. Expected score jump: <strong style="color:var(--green)">+50 to +80 pts</strong> in a single cycle','var(--green)','🟢'],
+      ['May 2026','New baseline','You now have a card with 0% utilization, perfect payment history. Log the new scores above.','var(--purp)','🟣'],
+      ['May+','Ongoing strategy','Use card for groceries only. Pay full balance before the 20th every month. 3% BoniDollars accumulate free.','var(--green)','🟢'],
+    ].map(([date,title,desc,col,dot])=>`
+    <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+      <div style="min-width:72px;font-size:11px;font-family:var(--mono);font-weight:600;color:${col};flex-shrink:0;padding-top:1px">${date}</div>
+      <div style="font-size:16px;flex-shrink:0">${dot}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">${title}</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">${desc}</div>
+      </div>
+    </div>`).join('')}
+    <div class="info-box" style="margin-top:16px;border-color:rgba(88,166,255,.2);background:rgba(88,166,255,.04)">
+      <strong style="color:var(--blue)">Why March 30 specifically matters:</strong><br>
+      Your statement closes April 20. Whatever your balance is on that date is what gets reported to the bureaus.
+      Pay before March 30 → April 20 reports $0 → score jump arrives before you need it for mortgage pre-approval in Year 2.
+      Every month you wait to pay this off is another month of 77% utilization dragging your score down.
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div><div class="card-title">Credit Card Payment Calendar</div><div class="card-sub">Desjardins Odyssée · Statement closes ~20th · Due 13th following month</div></div>
+      <span class="badge badge-green">Auto-strategy</span>
+    </div>
+    ${ccCalendarHTML(latest.eq)}
+  </div>
+
+  <!-- Add entry form -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:14px">Log New Score Reading</div>
+    <div class="entry-form">
+      <div class="ef-group">
+        <label class="ef-label">Month / Year</label>
+        <input class="ef-input" id="cr-date" type="month" value="${new Date().toISOString().slice(0,7)}">
+      </div>
+      <div class="ef-group">
+        <label class="ef-label">Equifax Score</label>
+        <input class="ef-input" id="cr-eq" type="number" min="300" max="900" placeholder="e.g. 695">
+      </div>
+      <div class="ef-group">
+        <label class="ef-label">TransUnion Score</label>
+        <input class="ef-input" id="cr-tu" type="number" min="300" max="900" placeholder="e.g. 701">
+      </div>
+      <div class="ef-group">
+        <label class="ef-label">Note (optional)</label>
+        <input class="ef-input" id="cr-note" type="text" placeholder="e.g. paid card off" style="color:var(--text2);font-family:var(--font);font-size:13px;font-weight:400">
+      </div>
+      <button class="ef-btn" onclick="addCR()">+ Log</button>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:12px">Score History Chart</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:var(--blue)"></span>Equifax</span>
+      <span><span class="ldot" style="background:var(--purp)"></span>TransUnion</span>
+      <span><span class="ldot" style="background:rgba(227,179,65,.5);border:1px dashed var(--amber)"></span>750 Target</span>
+    </div>
+    <div class="chart-wrap"><canvas id="crCanvas"></canvas></div>
+  </div>
+
+  <!-- History table -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:12px">Score History</div>
+    <div class="table-scroll">
+      <table class="cr-history">
+        <thead><tr>
+          <th style="text-align:left">Period</th>
+          <th>Equifax</th><th>Δ EQ</th>
+          <th>TransUnion</th><th>Δ TU</th>
+          <th style="text-align:left">Note</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Advice -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">Strategy — $2,500 Limit · Road to Real Estate Leverage</div>
+    <div class="advice-grid">
+      <div class="advice-item" style="border-left-color:var(--green)">
+        <div class="adv-icon">💳</div>
+        <div>
+          <div class="adv-title">Rule #1 — Zero balance, always</div>
+          <div class="adv-desc">Pay your card IN FULL every month before the statement closes. Ideally keep the balance under $75 (3%). A $2,500 limit with $0 balance is worth 30–40 score points vs. carrying even $500.</div>
+          <span class="adv-tag" style="background:var(--green-bg);color:var(--green)">Highest impact</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--blue)">
+        <div class="adv-icon">📅</div>
+        <div>
+          <div class="adv-title">Pay before statement date, not due date</div>
+          <div class="adv-desc">Bureaus report the <em>statement balance</em>, not due-date balance. Pay down to $0 or under $75 before your statement closes each month — even if you pay it off anyway.</div>
+          <span class="adv-tag" style="background:var(--blue-bg);color:var(--blue)">Score trick</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--amber)">
+        <div class="adv-icon">📈</div>
+        <div>
+          <div class="adv-title">Request a limit increase in 6–12 months</div>
+          <div class="adv-desc">At 750+ score, request your limit go from $2,500 → $7,500–$10,000. Higher limit with same $0 balance = lower utilization ratio = better score and better LOC offers for real estate.</div>
+          <span class="adv-tag" style="background:var(--amber-bg);color:var(--amber)">6–12 months out</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--purp)">
+        <div class="adv-icon">🏠</div>
+        <div>
+          <div class="adv-title">Target: 750+ before Year 2 duplex purchase</div>
+          <div class="adv-desc">At 750+, you unlock: best 5-year fixed mortgage rates (save $80–150/mo), HELOC access post-purchase at prime+0.5%, and CMHC approval with fewer conditions. That score difference is worth $20K+ over your mortgage.</div>
+          <span class="adv-tag" style="background:var(--purp-bg);color:var(--purp)">RE leverage goal</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--green)">
+        <div class="adv-icon">⏰</div>
+        <div>
+          <div class="adv-title">Never miss a payment — ever</div>
+          <div class="adv-desc">One missed payment (30+ days late) drops your score 60–110 points and stays on your report for 6 years. Set auto-pay for the minimum as a safety net, then manually pay the full balance before statement close.</div>
+          <span class="adv-tag" style="background:var(--green-bg);color:var(--green)">Non-negotiable</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--red)">
+        <div class="adv-icon">🚫</div>
+        <div>
+          <div class="adv-title">Avoid hard inquiries until Year 2</div>
+          <div class="adv-desc">Every credit application (new card, car loan, financing) triggers a hard inquiry = −5 to −15 pts for up to 2 years. Do NOT apply for new credit until after your duplex mortgage closes. Then add one more card to diversify.</div>
+          <span class="adv-tag" style="background:var(--red-bg);color:var(--red)">Avoid until Yr 2</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--amber)">
+        <div class="adv-icon">🔁</div>
+        <div>
+          <div class="adv-title">Use the card monthly — then pay it off</div>
+          <div class="adv-desc">Don't leave the card unused. Put one recurring bill (phone, gym, Netflix) on it. Pay it off before statement close. Active + zero-balance = the perfect credit signal to bureaus. Inactive cards get lower weight.</div>
+          <span class="adv-tag" style="background:var(--amber-bg);color:var(--amber)">Monthly habit</span>
+        </div>
+      </div>
+      <div class="advice-item" style="border-left-color:var(--blue)">
+        <div class="adv-icon">📊</div>
+        <div>
+          <div class="adv-title">Your trajectory: Jan 655 → Feb 686 avg</div>
+          <div class="adv-desc">You gained ~31 average points in one month — that's exceptional. This was likely from getting the $2,500 card + zero balance. Maintain this. At 8–12 pts/month average, you hit 750 in <strong>~5–8 months</strong>.</div>
+          <span class="adv-tag" style="background:var(--blue-bg);color:var(--blue)">Your data</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Draw chart
+  setTimeout(()=>{
+    const labels=CR.map(r=>r.label);
+    const eqData=CR.map(r=>r.eq);
+    const tuData=CR.map(r=>r.tu);
+    const targetLine=CR.map(()=>750);
+    if(window._crChart) window._crChart.destroy();
+    window._crChart=new Chart(document.getElementById('crCanvas'),{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Equifax',data:eqData,borderColor:'#58A6FF',backgroundColor:'rgba(88,166,255,.08)',fill:true,tension:.35,pointRadius:6,pointBackgroundColor:'#58A6FF',borderWidth:2.5,pointHoverRadius:8},
+        {label:'TransUnion',data:tuData,borderColor:'#BC8CFF',backgroundColor:'rgba(188,140,255,.08)',fill:true,tension:.35,pointRadius:6,pointBackgroundColor:'#BC8CFF',borderWidth:2.5,pointHoverRadius:8},
+        {label:'Target 750',data:targetLine,borderColor:'rgba(227,179,65,.5)',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C2128',borderColor:'rgba(255,255,255,.1)',borderWidth:1,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}`}}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:11}}},
+          y:{min:620,max:780,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:11,family:'DM Mono'},stepSize:20}}
+        }
+      }
+    });
+  },80);
+}
+
+function addCR(){
+  const date=document.getElementById('cr-date').value;
+  const eq=parseInt(document.getElementById('cr-eq').value)||0;
+  const tu=parseInt(document.getElementById('cr-tu').value)||0;
+  const note=document.getElementById('cr-note').value.trim();
+  if(!date||!eq||!tu){ alert('Please fill in month, Equifax, and TransUnion scores.'); return; }
+  const d=new Date(date+'-01');
+  const label=d.toLocaleString('en-CA',{month:'long',year:'numeric'});
+  // Remove duplicate date if exists
+  CR=CR.filter(r=>r.date!==date);
+  CR.push({date,label,eq,tu,note});
+  CR.sort((a,b)=>a.date.localeCompare(b.date));
+  saveCR(); renderCredit();
+}
+
+function delCR(idx){
+  if(CR.length<=1){ alert('Keep at least one entry.'); return; }
+  CR.splice(idx,1); saveCR(); renderCredit();
+}
+
+// ── Net Worth Journey ─────────────────────────────────────────────
+let nwChart=null;
+const NW_HISTORY_DEFAULTS=[
+  {label:'Jan 2024',rrsp:0,tfsa:0,re_fund:0,cash:200,cc_debt:0,other_debt:0,note:'Starting point — building from zero'},
+  {label:'Jun 2024',rrsp:0,tfsa:0,re_fund:0,cash:400,cc_debt:800,other_debt:0,note:''},
+  {label:'Dec 2024',rrsp:0,tfsa:0,re_fund:0,cash:600,cc_debt:1977,other_debt:0,note:'Card balance climbing'},
+  {label:'Jan 2025',rrsp:0,tfsa:0,re_fund:0,cash:700,cc_debt:1977,other_debt:0,note:'Wealth plan started'},
+  {label:'Jun 2025',rrsp:5400,tfsa:3600,re_fund:5400,cash:800,cc_debt:1977,other_debt:0,note:'6 months in'},
+  {label:'Dec 2025',rrsp:10800,tfsa:7200,re_fund:10800,cash:1000,cc_debt:1977,other_debt:0,note:'End of Year 1'},
+  {label:'Jan 2026',rrsp:0,tfsa:0,re_fund:21233,cash:0,cc_debt:1777,other_debt:0,note:'Jan 2026 — NW $19,456 (from Excel)'},
+];
+const NW_PROJECTED_2026=[12500,14900,17300,21180,23580,25980,28380,30780,33180,35580,37980,40380];
+const NW_MONTHS2026=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const NW_DATA_VERSION='v3';
+function loadNW(){
+  try{
+    const d=localStorage.getItem('wb4_nw');
+    if(d){const p=JSON.parse(d);if(p._v===NW_DATA_VERSION)return p;}
+  }catch(e){}
+  // fresh seed — clear old stale data and set real Feb numbers
+  const fresh={
+    _v:NW_DATA_VERSION,
+    history:[...NW_HISTORY_DEFAULTS.map(h=>({...h}))],
+    monthly2026:{
+      1:{rrsp:0,tfsa:0,re_fund:12411.61,cash:0,cc_debt:1764.18,other_debt:0,note:'Feb 2026 — NW $10,647.43'}
+    }
+  };
+  saveNW(fresh);
+  return fresh;
+}
+function saveNW(d){try{localStorage.setItem('wb4_nw',JSON.stringify(d));}catch(e){}}
+function nwCalc(r){return(r.rrsp||0)+(r.tfsa||0)+(r.re_fund||0)+(r.cash||0)-(r.cc_debt||0)-(r.other_debt||0);}
+
+function renderNetWorth(){
+  const panel=document.getElementById('panel-networth');
+  const nwd=loadNW();
+  const cm=new Date().getMonth();
+  const m2026=nwd.monthly2026||{};
+
+  // find most recent filled entry
+  const entries=Object.keys(m2026).map(Number).filter(k=>nwCalc(m2026[k])!==0);
+  const lastIdx=entries.length>0?Math.max(...entries):-1;
+  const lastRow=lastIdx>=0?m2026[lastIdx]:nwd.history[nwd.history.length-1];
+  const currentNW=nwCalc(lastRow||{});
+
+  // month-over-month delta
+  let prevNW=null;
+  if(lastIdx>1){for(let p=lastIdx-1;p>=1;p--){const pm=m2026[p];if(pm&&nwCalc(pm)!==0){prevNW=nwCalc(pm);break;}}}
+  const momDelta=prevNW!==null?currentNW-prevNW:null;
+
+  // chart — actual only, no plan line
+  const chartLabels=[],chartActual=[];
+  nwd.history.forEach(h=>{chartLabels.push(h.label);chartActual.push(nwCalc(h));});
+  NW_MONTHS2026.forEach((mn,i)=>{
+    if(i<1)return;
+    chartLabels.push(mn.slice(0,3)+' 26');
+    const m=m2026[i];
+    chartActual.push(m&&nwCalc(m)!==0?nwCalc(m):null);
+  });
+
+  let insightHTML='';
+  if(!entries.length){
+    insightHTML=`<span style="color:var(--blue)">February is pre-filled with your $1,764.18 CC balance. Add your assets (RRSP, TFSA, cash) to see your real net worth.</span>`;
+  } else if(momDelta!==null){
+    const up=momDelta>=0;
+    insightHTML=`Net worth moved <strong style="color:${up?'var(--green)':'var(--red)'}">${up?'+':''}${fm(momDelta)}</strong> month-over-month.${up?' Keep the momentum — you\'re building.':' Paying off the card Mar 30 adds $1,764 instantly.'}`;
+  } else {
+    insightHTML=`<span style="color:var(--text2)">Enter another month to see month-over-month movement.</span>`;
+  }
+
+  panel.innerHTML=`
+  <div class="two-col" style="margin-bottom:16px">
+    <div class="card" style="border-color:rgba(63,185,80,.3)">
+      <div class="section-label">Net worth — latest entry</div>
+      <div style="font-size:40px;font-weight:600;font-family:var(--mono);color:${currentNW>=0?'var(--green)':'var(--red)'};letter-spacing:-1px;margin:6px 0 16px">${fm(currentNW)}</div>
+      ${momDelta!==null?`<div style="display:flex;gap:12px;margin-bottom:16px">
+        <div class="mini-stat" style="flex:1;text-align:center;padding:12px">
+          <div class="ms-label">Month-over-month</div>
+          <div class="ms-value" style="color:${momDelta>=0?'var(--green)':'var(--red)'}">${momDelta>=0?'+':''}${fm(momDelta)}</div>
+        </div>
+        <div class="mini-stat" style="flex:1;text-align:center;padding:12px">
+          <div class="ms-label">To $620K goal</div>
+          <div class="ms-value" style="color:var(--blue)">${Math.max(0,Math.round(currentNW/620000*100))}%</div>
+        </div>
+      </div>`:''}
+      <div class="info-box">${insightHTML}</div>
+    </div>
+    <div class="card">
+      <div class="section-label">The plan — origin</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.9">
+        <strong style="color:var(--text)">Core insight:</strong> $447 rent = 11% of income (Cdn avg 30–40%). That gap is your wealth engine.<br>
+        <strong style="color:var(--green)">3 auto-transfers/month:</strong> RRSP $900 · TFSA $600 · RE Fund $900<br>
+        <strong style="color:var(--amber)">April lump sum:</strong> ~$3,780 Quebec tax refund → RE Fund<br>
+        <strong style="color:var(--blue)">Year 2:</strong> ~$65K → 10% down on $500K duplex<br>
+        <strong style="color:var(--purp)">Year 5–6:</strong> Refinance Prop 1 (~$150K equity) → Prop 2<br>
+        <strong style="color:var(--green)">Year 8 target: $620K+</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div><div class="card-title">Net worth journey — Feb 2026 baseline</div><div class="card-sub">Your actual numbers, month by month</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="nwCanvas"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div><div class="card-title">2026 Monthly Log</div><div class="card-sub">Assets − liabilities = net worth · Feb pre-filled from your statement</div></div>
+      <span class="badge badge-blue">Auto-calculates</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px" id="nw2026grid"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div><div class="card-title">2024–2025 History</div><div class="card-sub">Edit any value to correct your baseline</div></div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Period</th>
+          <th>RRSP</th><th>TFSA</th><th>RE Fund</th><th>Cash</th>
+          <th style="color:var(--red)">CC Debt</th><th style="color:var(--red)">Other Debt</th>
+          <th style="color:var(--green)">Net Worth</th>
+        </tr></thead>
+        <tbody id="nwHistoryRows"></tbody>
+      </table>
+    </div>
+    <button onclick="nwAddSnap()" style="margin-top:12px;padding:8px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">+ Add snapshot</button>
+  </div>
+
+  <!-- AI ADVISOR SECTION 1: NW + Expense Coach -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(63,185,80,.25)">
+    <div class="card-header">
+      <div><div class="card-title" style="color:var(--green)">🧠 AI Wealth Coach</div><div class="card-sub">Personalized advice based on your actual numbers · stick to the plan</div></div>
+      <button id="btn-advice" onclick="runAdvice()" style="padding:8px 18px;background:var(--green);border:none;border-radius:var(--radius);font-size:12px;font-weight:600;color:#000;cursor:pointer;font-family:var(--font);transition:opacity .2s">Get advice</button>
+    </div>
+    <div id="advice-out" style="font-size:13px;color:var(--text2);line-height:1.8;min-height:40px">
+      <span style="color:var(--text3)">Click "Get advice" — I'll analyze your current NW, expenses, plan progress, and give you specific actions for this month.</span>
+    </div>
+  </div>
+
+  <!-- AI ADVISOR SECTION 2: Side Gig Ideas -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(188,140,255,.25)">
+    <div class="card-header">
+      <div><div class="card-title" style="color:var(--purp)">⚡ Side Income Generator</div><div class="card-sub">Refreshes daily · based on your profile · with expected monthly income</div></div>
+      <button id="btn-gig" onclick="runGigIdeas()" style="padding:8px 18px;background:var(--purp);border:none;border-radius:var(--radius);font-size:12px;font-weight:600;color:#000;cursor:pointer;font-family:var(--font);transition:opacity .2s">Generate ideas</button>
+    </div>
+    <div id="gig-out" style="font-size:13px;color:var(--text2);line-height:1.8;min-height:40px">
+      <span style="color:var(--text3)">Click to get 5 realistic side gig ideas tailored to Montreal, your $49K income level, and skills that can stack income fast.</span>
+    </div>
+    <div id="gig-last" style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:8px"></div>
+  </div>`;
+
+  renderNW2026Grid(nwd,m2026,cm);
+  renderNWHistTable(nwd);
+  setTimeout(()=>renderNWChart(chartLabels,chartActual),80);
+  // Auto-load gig ideas if stale (older than 24h)
+  setTimeout(()=>autoRefreshGig(),200);
+}
+
+// Feb 2026 pre-seed defaults (from statement)
+// Real data from Excel: Jan 2026 NW=$19,456 · Feb 2026 NW=$10,647.43
+const NW_FEB_SEED={rrsp:0,tfsa:0,re_fund:12411.61,cash:0,cc_debt:1764.18,other_debt:0,note:'Feb 2026 — net worth $10,647.43'};
+
+function renderNW2026Grid(nwd,m2026,cm){
+  const grid=document.getElementById('nw2026grid'); if(!grid)return;
+
+  let html='';
+  NW_MONTHS2026.forEach((mn,i)=>{
+    if(i<1) return; // skip January — start from February
+    const m=m2026[i]||{};
+    const assets=(m.rrsp||0)+(m.tfsa||0)+(m.re_fund||0)+(m.cash||0);
+    const liabilities=(m.cc_debt||0)+(m.other_debt||0);
+    const nw=assets-liabilities;
+    const hasData=assets>0||liabilities>0;
+    const isCur=i===cm, isPast=i<cm;
+
+    // month-over-month delta vs previous filled month
+    let prevNW=null;
+    for(let p=i-1;p>=1;p--){const pm=m2026[p];if(pm&&(nwCalc(pm)!==0)){prevNW=nwCalc(pm);break;}}
+    const delta=prevNW!==null?nw-prevNW:null;
+
+    html+=`<div class="month-card ${isCur?'current':''}">
+      <div class="month-head">
+        <span class="month-name">${mn} 2026</span>
+        <span class="badge ${isPast?'badge-green':isCur?'badge-blue':'badge-gray'}">${isPast?'Done':isCur?'Current':'Upcoming'}</span>
+      </div>
+
+      ${hasData?`
+        <div style="font-size:28px;font-weight:600;font-family:var(--mono);color:${nw>=0?'var(--green)':'var(--red)'};letter-spacing:-.5px;margin:6px 0 4px">${fm(nw)}</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;font-size:11px;font-family:var(--mono);flex-wrap:wrap">
+          <span style="color:var(--green)">▲ ${fm(assets)}</span>
+          <span style="color:var(--text3)">·</span>
+          <span style="color:var(--red)">▼ ${fm(liabilities)}</span>
+          ${delta!==null?`<span style="color:var(--text3)">·</span><span style="color:${delta>=0?'var(--green)':'var(--red)'}">${delta>=0?'+':''}${fm(delta)} MoM</span>`:''}
+        </div>
+      `:`<div style="font-size:12px;color:var(--text3);margin:8px 0 14px">Enter balances below</div>`}
+
+      <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Assets</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
+        ${[['RRSP','rrsp','var(--blue)'],['TFSA','tfsa','var(--green)'],['RE Fund','re_fund','var(--amber)'],['Cash','cash','var(--text2)']].map(([lbl,key,col])=>`
+        <div class="minput-wrap">
+          <div class="minput-label" style="color:${col}">${lbl}</div>
+          <span class="dollar-pfx">$</span>
+          <input class="minput" type="number" min="0" placeholder="0" value="${m[key]||''}" oninput="nwUpd26(${i},'${key}',this.value)">
+        </div>`).join('')}
+      </div>
+
+      <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Liabilities</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+        <div class="minput-wrap">
+          <div class="minput-label" style="color:var(--red)">Desjardins CC</div>
+          <span class="dollar-pfx" style="color:var(--red)">$</span>
+          <input class="minput" type="number" min="0" placeholder="0" value="${m.cc_debt||''}" oninput="nwUpd26(${i},'cc_debt',this.value)" style="color:var(--red)">
+        </div>
+        <div class="minput-wrap">
+          <div class="minput-label" style="color:var(--red)">Other Debt</div>
+          <span class="dollar-pfx" style="color:var(--red)">$</span>
+          <input class="minput" type="number" min="0" placeholder="0" value="${m.other_debt||''}" oninput="nwUpd26(${i},'other_debt',this.value)" style="color:var(--red)">
+        </div>
+      </div>
+
+      <textarea class="mnote" placeholder="Notes for ${mn}…" oninput="nwNote26(${i},this.value)">${m.note||''}</textarea>
+
+      <div class="month-footer">
+        <span>Net worth</span>
+        <span class="ftotal" style="color:${nw>=0?'var(--green)':'var(--red)'}">${hasData?fm(nw):'—'}</span>
+      </div>
+    </div>`;
+  });
+  grid.innerHTML=html;
+}
+
+function renderNWHistTable(nwd){
+  const tbody=document.getElementById('nwHistoryRows'); if(!tbody)return;
+  tbody.innerHTML=nwd.history.map((h,i)=>`<tr>
+    <td><input style="background:transparent;border:none;outline:none;font-size:13px;color:var(--text);font-family:var(--font);width:100px" value="${h.label}" onchange="nwHist(${i},'label',this.value)"></td>
+    ${['rrsp','tfsa','re_fund','cash'].map(k=>`<td><input style="background:transparent;border:none;outline:none;font-size:12px;color:var(--blue);font-family:var(--mono);text-align:right;width:72px" type="number" value="${h[k]||0}" onchange="nwHist(${i},'${k}',this.value)"></td>`).join('')}
+    <td><input style="background:transparent;border:none;outline:none;font-size:12px;color:var(--red);font-family:var(--mono);text-align:right;width:72px" type="number" value="${h.cc_debt||0}" onchange="nwHist(${i},'cc_debt',this.value)"></td>
+    <td><input style="background:transparent;border:none;outline:none;font-size:12px;color:var(--red);font-family:var(--mono);text-align:right;width:72px" type="number" value="${h.other_debt||0}" onchange="nwHist(${i},'other_debt',this.value)"></td>
+    <td class="nw-td">${fm(nwCalc(h))}</td>
+  </tr>`).join('');
+}
+
+function renderNWChart(labels,actual){
+  if(nwChart)nwChart.destroy();
+  const canvas=document.getElementById('nwCanvas'); if(!canvas)return;
+  nwChart=new Chart(canvas,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Net worth',data:actual,borderColor:'#3FB950',backgroundColor:'rgba(63,185,80,.08)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#3FB950',borderWidth:2.5,spanGaps:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C2128',borderColor:'rgba(255,255,255,.1)',borderWidth:1,callbacks:{label:c=>`Net worth: $${Math.round(c.raw||0).toLocaleString()}`}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:14}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8B949E',font:{size:11,family:'DM Mono'},callback:v=>'$'+Math.round(v/1000)+'K'}}
+      }
+    }
+  });
+}
+
+function nwUpd26(i,key,val){
+  const nwd=loadNW();
+  if(!nwd.monthly2026[i])nwd.monthly2026[i]={rrsp:0,tfsa:0,re_fund:0,cash:0,cc_debt:0,other_debt:0,note:''};
+  nwd.monthly2026[i][key]=parseFloat(val)||0;
+  saveNW(nwd);
+  const m=nwd.monthly2026[i];
+  const assets=(m.rrsp||0)+(m.tfsa||0)+(m.re_fund||0)+(m.cash||0);
+  const liabilities=(m.cc_debt||0)+(m.other_debt||0);
+  const nw=assets-liabilities;
+  const m2026=nwd.monthly2026;
+  let prevNW=null;
+  for(let p=i-1;p>=1;p--){const pm=m2026[p];if(pm&&nwCalc(pm)!==0){prevNW=nwCalc(pm);break;}}
+  const delta=prevNW!==null?nw-prevNW:null;
+  // cards start at Feb (i=1) so card index = i-1
+  const cards=document.querySelectorAll('#nw2026grid .month-card');
+  const card=cards[i-1]; if(!card)return;
+  let nwDiv=card.querySelector('.nw-live');
+  let subDiv=card.querySelector('.nw-sub-live');
+  const footer=card.querySelector('.ftotal');
+  if(!nwDiv){
+    const mh=card.querySelector('.month-head');
+    const nD=document.createElement('div');nD.className='nw-live';
+    nD.style.cssText='font-size:26px;font-weight:600;font-family:var(--mono);letter-spacing:-.5px;margin-bottom:2px';
+    const sD=document.createElement('div');sD.className='nw-sub-live';
+    sD.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-family:var(--mono)';
+    mh.after(sD);mh.after(nD);
+    nwDiv=nD;subDiv=sD;
+  }
+  nwDiv.textContent=fm(nw);
+  nwDiv.style.color=nw>=0?'var(--green)':'var(--red)';
+  subDiv.innerHTML=`<span style="color:var(--green)">Assets ${fm(assets)}</span><span style="color:var(--text3)">·</span><span style="color:var(--red)">Debts ${fm(liabilities)}</span>${delta!==null?`<span style="color:var(--text3)">·</span><span style="color:${delta>=0?'var(--green)':'var(--red)'}">${delta>=0?'▲ +':'▼ '}${fm(Math.abs(delta))}</span>`:''}`;
+  if(footer){footer.textContent=fm(nw);footer.style.color=nw>=0?'var(--green)':'var(--red)';}
+  nwDiv.classList.remove('flash');void nwDiv.offsetWidth;nwDiv.classList.add('flash');
+}
+function nwNote26(i,val){const nwd=loadNW();if(!nwd.monthly2026[i])nwd.monthly2026[i]={};nwd.monthly2026[i].note=val;saveNW(nwd);}
+function nwHist(i,key,val){const nwd=loadNW();nwd.history[i][key]=isNaN(parseFloat(val))?val:(parseFloat(val)||0);saveNW(nwd);renderNWHistTable(nwd);}
+function nwAddSnap(){const nwd=loadNW();nwd.history.push({label:'New snapshot',rrsp:0,tfsa:0,re_fund:0,cash:0,cc_debt:0,other_debt:0,note:''});saveNW(nwd);renderNetWorth();}
+
+// ── AI Advisor functions ─────────────────────────────────────────
+
+function getNWContext(){
+  const nwd=loadNW();
+  const m2026=nwd.monthly2026||{};
+  const entries=Object.keys(m2026).map(Number).filter(k=>nwCalc(m2026[k])!==0);
+  const lastIdx=entries.length>0?Math.max(...entries):-1;
+  const lastRow=lastIdx>=0?m2026[lastIdx]:{};
+  const nw=nwCalc(lastRow);
+  const c=C();
+  return {
+    nw, lastRow,
+    mo_net:c.mo_net, mo_inv:c.mo_inv, mo_free:c.mo_free,
+    fix:c.fix, vari:c.vari,
+    rrsp_mo:A.rrsp_mo, tfsa_mo:A.tfsa_mo, re_mo:A.re_mo,
+    cc_debt:lastRow.cc_debt||0,
+    sav_rate:Math.round(c.sav*100),
+    house_ratio:Math.round(c.house*100),
+    refund:c.refund,
+    prop1_price:A.prop1_price
+  };
+}
+
+async function runAdvice(){
+  const btn=document.getElementById('btn-advice');
+  const out=document.getElementById('advice-out');
+  btn.disabled=true; btn.textContent='Thinking…'; btn.style.opacity='.6';
+  out.innerHTML='<span style="color:var(--text3)">Analyzing your numbers…</span>';
+  const ctx=getNWContext();
+  const prompt=`You are a sharp, direct wealth coach for a 35-year-old in Montreal, Quebec, Canada.
+
+Here is their exact financial situation right now:
+- Net worth: $${ctx.nw.toFixed(2)} (Feb 2026 baseline)
+- Monthly net income: $${ctx.mo_net.toFixed(0)}
+- Monthly investments: RRSP $${ctx.rrsp_mo} + TFSA $${ctx.tfsa_mo} + RE Fund $${ctx.re_mo} = $${ctx.mo_inv}/mo
+- Savings rate: ${ctx.sav_rate}%
+- Fixed expenses: $${ctx.fix}/mo (rent $447 — only 11% of income, huge advantage)
+- Variable expenses: $${ctx.vari}/mo  
+- Free cash flow buffer: $${ctx.mo_free.toFixed(0)}/mo
+- CC debt (Desjardins): $${ctx.cc_debt.toFixed(2)} — being paid off March 30
+- Annual RRSP tax refund coming in April: ~$${ctx.refund.toFixed(0)}
+- 8-year goal: $620K net worth via 3 automated transfers + duplex purchase in Year 2 (~$${ctx.prop1_price.toLocaleString()})
+
+Give them:
+1. ONE specific thing they must do THIS MONTH to stay on track (be very direct, no fluff)
+2. TWO expense categories to watch based on their variable spending ($${ctx.vari}/mo)
+3. ONE mindset reminder about delayed gratification specific to their situation
+4. Quick wins: 2 actions under 10 minutes they can do today
+
+Keep it under 200 words. Be direct, specific to their numbers, no generic advice. Use $ amounts. Speak to them like a trusted advisor who knows their full picture.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'Could not get advice right now.';
+    out.innerHTML=text.replace(/\n\n/g,'<br><br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--text)">$1</strong>').replace(/^(\d+\. )/gm,'<strong style="color:var(--green)">$1</strong>');
+  }catch(e){
+    out.innerHTML='<span style="color:var(--red)">Could not connect. Check internet and try again.</span>';
+  }
+  btn.disabled=false; btn.textContent='Refresh advice'; btn.style.opacity='1';
+}
+
+async function runGigIdeas(force=true){
+  const btn=document.getElementById('btn-gig');
+  const out=document.getElementById('gig-out');
+  const lastEl=document.getElementById('gig-last');
+  if(!btn||!out)return;
+  btn.disabled=true; btn.textContent='Generating…'; btn.style.opacity='.6';
+  out.innerHTML='<span style="color:var(--text3)">Finding the best income opportunities for your profile…</span>';
+
+  const today=new Date().toLocaleDateString('en-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const ctx=getNWContext();
+  const prompt=`You are an income strategist for a 35-year-old building wealth in Montreal, Quebec.
+
+Their profile:
+- $49K net income/year ($${ctx.mo_net.toFixed(0)}/mo) — looking to add income
+- Location: Montreal, QC — bilingual city (French/English advantage)
+- Already investing $${ctx.mo_inv}/mo — goal is to accelerate RE down payment
+- Has ~$${ctx.mo_free.toFixed(0)}/mo free cash flow buffer for reinvestment
+- 8-year wealth plan — needs side income that doesn't burn out
+
+Today is ${today}. Generate EXACTLY 5 side gig ideas. For each:
+- Name of gig (bold)
+- Why it fits their Montreal profile specifically
+- Realistic monthly income range (low-high in CAD)
+- Time to first dollar (days/weeks)
+- Effort level: Low / Medium / High
+- One specific platform or first step to start TODAY
+
+Focus on: skills that compound (teach, consult, create), Montreal-specific opportunities, and ideas that can generate $300–$2,000/mo within 60 days. No generic "drive Uber" unless it's genuinely the best option. Prioritize high-leverage and digital-first.
+
+Format each idea clearly numbered 1–5. Keep total under 300 words.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'Could not get ideas right now.';
+    const formatted=text
+      .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--purp)">$1</strong>')
+      .replace(/\n\n/g,'<br><br>')
+      .replace(/^(\d+\. )/gm,'<br><strong style="color:var(--purp);font-size:14px">$1</strong>');
+    out.innerHTML=formatted;
+    const ts=new Date().toISOString();
+    try{localStorage.setItem('wb4_gig',JSON.stringify({text,ts}));}catch(e){}
+    if(lastEl) lastEl.textContent='Last updated: '+new Date().toLocaleString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    out.innerHTML='<span style="color:var(--red)">Could not connect. Try again.</span>';
+  }
+  btn.disabled=false; btn.textContent='Regenerate'; btn.style.opacity='1';
+}
+
+function autoRefreshGig(){
+  const btn=document.getElementById('btn-gig');
+  const out=document.getElementById('gig-out');
+  const lastEl=document.getElementById('gig-last');
+  if(!out)return;
+  try{
+    const stored=localStorage.getItem('wb4_gig');
+    if(stored){
+      const {text,ts}=JSON.parse(stored);
+      const age=(Date.now()-new Date(ts).getTime())/3600000; // hours
+      const formatted=text
+        .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--purp)">$1</strong>')
+        .replace(/\n\n/g,'<br><br>')
+        .replace(/^(\d+\. )/gm,'<br><strong style="color:var(--purp);font-size:14px">$1</strong>');
+      out.innerHTML=formatted;
+      if(lastEl) lastEl.textContent='Last updated: '+new Date(ts).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      if(btn) btn.textContent='Regenerate';
+      // auto-refresh if older than 24h
+      if(age>24) runGigIdeas(false);
+      return;
+    }
+  }catch(e){}
+  // no stored data — auto-load
+  runGigIdeas(false);
+}
+
+// ── Quote crossfade — 1 quote per minute ───────────────────────────
+(function(){
+  const quotes=[
+    {text:"The secret to wealth is simple: find a way to do more for others than anyone else does.",attr:"Tony Robbins"},
+    {text:"Don't tell me where your priorities are. Show me where your money goes.",attr:"James W. Frick"},
+    {text:"Telling people what they want to hear is expensive. Doing what is right, in silence, is how wealth is built.",attr:"—"},
+    {text:"The ability to delay gratification is the single most powerful predictor of future success.",attr:"Walter Mischel"},
+    {text:"Rich people have small TVs and big libraries. Poor people have small libraries and big TVs.",attr:"Zig Ziglar"},
+    {text:"Stop buying things you don't need, to impress people you don't like, with money you don't have.",attr:"Will Rogers"},
+    {text:"Every dollar you spend today is a future dollar you chose not to invest.",attr:"—"},
+    {text:"Wealth, like a tree, grows from a tiny seed. The sooner you plant it, the sooner you rest in its shade.",attr:"George S. Clason"},
+    {text:"Do not save what is left after spending, but spend what is left after saving.",attr:"Warren Buffett"},
+    {text:"The pain of discipline is far less than the pain of regret.",attr:"—"},
+    {text:"Comfort is the enemy of achievement. Delayed gratification is the friend of wealth.",attr:"—"},
+    {text:"People pleasing is financial suicide — you're spending your future to manage someone else's feelings.",attr:"—"},
+    {text:"You don't have to be brilliant, only a little bit wiser than the other guys, on average, for a long, long time.",attr:"Charlie Munger"},
+    {text:"It's not your salary that makes you rich, it's your spending habits.",attr:"Charles A. Jaffe"},
+    {text:"Never depend on a single income. Make investments to create a second source.",attr:"Warren Buffett"},
+    {text:"The individual who says it is not possible should move out of the way of those doing it.",attr:"Tricia Cunningham"},
+    {text:"Seek approval from your future self, not from the crowd around you.",attr:"—"},
+    {text:"Time in the market beats timing the market — always.",attr:"—"},
+    {text:"Your net worth is the sum of every quiet decision no one saw you make.",attr:"—"},
+    {text:"An investment in knowledge pays the best interest.",attr:"Benjamin Franklin"},
+  ];
+
+  function qHTML(q){
+    return `<span class="q-text">"${q.text}"</span><span class="q-sep">·</span><span class="q-attr">${q.attr}</span>`;
+  }
+
+  const elA=document.getElementById('qA');
+  const elB=document.getElementById('qB');
+  let idx=0, useA=true;
+
+  elA.innerHTML=qHTML(quotes[0]);
+
+  setInterval(()=>{
+    idx=(idx+1)%quotes.length;
+    const next=useA?elB:elA;
+    const curr=useA?elA:elB;
+    next.innerHTML=qHTML(quotes[idx]);
+    next.classList.remove('hide'); next.classList.add('show');
+    curr.classList.remove('show'); curr.classList.add('hide');
+    useA=!useA;
+  }, 60000); // exactly 60 seconds
+})();
+</script>
+</body>
+</html>
